@@ -1,0 +1,35 @@
+[
+  {
+    "id": "txn_001",
+    "user": "usr_991",
+    "bank": "Chase",
+    "amount": 250.00,
+    "rail": "ACH",
+    "risk_score": 12,
+    "risk_level": "LOW",
+    "status": "COMPLETED",
+    "timestamp": "2026-06-03T10:00:00Z"
+  },
+  {
+    "id": "txn_002",
+    "user": "usr_992",
+    "bank": "Bank of America",
+    "amount": 15000.00,
+    "rail": "WIRE",
+    "risk_score": 85,
+    "risk_level": "HIGH",
+    "status": "PENDING",
+    "timestamp": "2026-06-03T10:15:00Z"
+  },
+  {
+    "id": "txn_003",
+    "user": "usr_993",
+    "bank": "Wells Fargo",
+    "amount": 45.50,
+    "rail": "RTP",
+    "risk_score": 5,
+    "risk_level": "LOW",
+    "status": "COMPLETED",
+    "timestamp": "2026-06-03T10:20:00Z"
+  }
+]

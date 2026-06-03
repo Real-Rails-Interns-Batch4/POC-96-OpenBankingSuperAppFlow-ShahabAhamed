@@ -1,27 +1,27 @@
-# Open Banking + Payments Super-App Flow
+# POC-96 — Open Banking + Payments Super-App Flow
 
-A production-style intelligence visualization platform demonstrating hybrid payment rail orchestration, open banking connectivity, risk evaluation, and transaction intelligence analytics.
+## Project Overview
+A production-style intelligence platform designed to visualize Open Banking flows, hybrid payment rails, risk orchestration, transaction intelligence, consent systems, and financial infrastructure analytics.
+
+This is a foundational architecture to establish a clean, scalable engineering foundation without over-engineering or building complex features prematurely.
+
+## Architecture Summary
+The project follows a clean enterprise-style structure separating the frontend application and backend service.
+
+- **Frontend:** Next.js application handling the visualization and UI logic.
+- **Backend:** FastAPI service providing data orchestration and serving endpoints.
 
 ## Tech Stack
+- **Frontend:** Next.js, TypeScript, Tailwind CSS, App Router
+- **Backend:** FastAPI, Uvicorn, Pandas, Python
+- **Libraries:** Recharts, Framer Motion, Lucide React
 
-### Frontend
-- Next.js
-- TypeScript
-- Tailwind CSS
-- Recharts
-- Framer Motion
+## Initial Feature List
+- Scalable, enterprise-ready folder structure.
+- Clean Next.js + Tailwind setup for the intelligence visualization UI.
+- Foundational FastAPI server with mock data endpoints.
+- Base integration scaffolding for transactions and analytics APIs.
 
-### Backend
-- FastAPI
-- Pandas
-
-## Features
-- Hybrid payment rail visualization
-- Open banking account connection simulation
-- Risk intelligence engine
-- Payment orchestration analytics
-- Transaction intelligence dashboard
-- LIVE + MOCK architecture support
-
-## Status
-Phase 1 — Architecture & Core System Setup
+## Project Status
+**Phase:** Initialization & Architecture Setup
+**Status:** In Progress

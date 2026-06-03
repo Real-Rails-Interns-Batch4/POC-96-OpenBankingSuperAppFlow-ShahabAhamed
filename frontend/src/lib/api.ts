@@ -1,0 +1,25 @@
+import { TransactionsResponse } from "@/types/transaction";
+
+export async function fetchTransactions(): Promise<TransactionsResponse> {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/transactions", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      next: { revalidate: 0 },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch transactions: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("API Error:", error);
+    return {
+      source_mode: "ERROR",
+      transactions: [],
+    };
+  }
+}
