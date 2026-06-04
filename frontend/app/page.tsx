@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchTransactions } from "@/lib/api";
 import { Transaction } from "@/types/transaction";
 import RailFlowEngine from "@/components/RailFlowEngine";
+import RailUsageChart from "@/components/RailUsageChart";
 import {
   Activity,
   AlertCircle,
@@ -92,6 +93,7 @@ export default function DashboardPage() {
 
             {/* HYBRID RAIL FLOW */}
             <RailFlowEngine />
+            <RailUsageChart transactions={transactions} />
 
             {/* TRANSACTION TABLE */}
             <div className="bg-[#0B1117] border border-slate-800 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
