@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchTransactions } from "@/lib/api";
 import { Transaction } from "@/types/transaction";
+import RailFlowEngine from "@/components/RailFlowEngine";
 import {
   Activity,
   AlertCircle,
@@ -88,6 +89,9 @@ export default function DashboardPage() {
               <KpiCard title="Active Rails" value="ACH, WIRE, RTP" icon={Activity} />
               <KpiCard title="Risk Alerts" value={riskAlerts.toString()} icon={AlertCircle} alert={riskAlerts > 0} />
             </div>
+
+            {/* HYBRID RAIL FLOW */}
+            <RailFlowEngine />
 
             {/* TRANSACTION TABLE */}
             <div className="bg-[#0B1117] border border-slate-800 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
