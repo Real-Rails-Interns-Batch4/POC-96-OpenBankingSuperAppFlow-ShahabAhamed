@@ -7,6 +7,7 @@ import RailFlowEngine from "@/components/RailFlowEngine";
 import RailUsageChart from "@/components/RailUsageChart";
 import RiskDistributionChart from "@/components/RiskDistributionChart";
 import TransactionTimeline from "@/components/TransactionTimeline";
+import AnalyticsGrid from "@/components/AnalyticsGrid";
 
 import {
   Activity,
@@ -96,9 +97,7 @@ export default function DashboardPage() {
 
             {/* HYBRID RAIL FLOW */}
             <RailFlowEngine />
-            <RailUsageChart transactions={transactions} />
-            <RiskDistributionChart transactions={transactions} />
-            <TransactionTimeline transactions={transactions} />
+            <AnalyticsGrid transactions={transactions} />
 
             {/* TRANSACTION TABLE */}
             <div className="bg-[#0B1117] border border-slate-800 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
