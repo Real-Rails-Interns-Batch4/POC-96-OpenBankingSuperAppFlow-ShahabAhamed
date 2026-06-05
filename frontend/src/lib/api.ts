@@ -23,3 +23,21 @@ export async function fetchTransactions(): Promise<TransactionsResponse> {
     };
   }
 }
+export async function fetchSourceStatus() {
+
+  try {
+
+    const response = await fetch(
+      "http://127.0.0.1:8000/api/source-status"
+    );
+
+    return await response.json();
+
+  } catch (error) {
+
+    return {
+      mode: "MOCK",
+      provider: "Fallback Feed",
+    };
+  }
+}

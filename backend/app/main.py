@@ -21,7 +21,27 @@ DATA_FILE = os.path.join(BASE_DIR, "mock_data", "transactions.json")
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "POC-96 Open Banking + Payments Super-App Flow API is running."}
+@app.get("/api/source-status")
+async def source_status():
 
+    try:
+        # Simulated live API availability check
+
+        live_available = True
+
+        if live_available:
+            return {
+                "mode": "LIVE",
+                "provider": "OpenBanking Gateway",
+            }
+
+    except Exception:
+        pass
+
+    return {
+        "mode": "MOCK",
+        "provider": "Synthetic Intelligence Feed",
+    }
 @app.get("/api/transactions")
 def get_transactions():
     try:

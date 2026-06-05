@@ -1,14 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchTransactions } from "@/lib/api";
 import { Transaction } from "@/types/transaction";
 import RailFlowEngine from "@/components/RailFlowEngine";
 import RailUsageChart from "@/components/RailUsageChart";
 import RiskDistributionChart from "@/components/RiskDistributionChart";
 import TransactionTimeline from "@/components/TransactionTimeline";
 import AnalyticsGrid from "@/components/AnalyticsGrid";
-
+import EventFeed from "@/components/EventFeed";
+import SystemStatusBar from "@/components/SystemStatusBar";
+import LiveClock from "@/components/LiveClock";
+import {
+  fetchTransactions,
+  fetchSourceStatus,
+} from "@/lib/api";
 import {
   Activity,
   AlertCircle,
@@ -22,23 +27,39 @@ import {
 
 export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [sourceMode, setSourceMode] = useState("LOADING");
+  const [sourceMode, setSourceMode] = useState("MOCK");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     async function loadData() {
+
       try {
+
+        // Transactions
         const data = await fetchTransactions();
+
         setTransactions(data.transactions || []);
-        setSourceMode(data.source_mode || "MOCK");
+
+        // Source Status
+        const status = await fetchSourceStatus();
+
+        setSourceMode(status.mode || "MOCK");
+
       } catch (error) {
+
         console.error(error);
+
         setSourceMode("ERROR");
+
       } finally {
+
         setLoading(false);
       }
     }
+
     loadData();
+
   }, []);
 
   if (loading) {
@@ -59,7 +80,7 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#030712] text-slate-300 font-sans selection:bg-cyan-500/30">
       <div className="max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8">
-        
+
         {/* HERO HEADER */}
         <header className="flex flex-col md:flex-row md:items-end justify-between pb-8 mb-8 border-b border-slate-800">
           <div>
@@ -71,22 +92,19 @@ export default function DashboardPage() {
               Hybrid Payments Orchestration Platform
             </p>
           </div>
-          <div className="mt-4 md:mt-0 flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-800 bg-[#0B1117] shadow-lg shadow-black/50">
-              <div className={`w-2 h-2 rounded-full ${sourceMode === 'LIVE' ? 'bg-cyan-500 animate-pulse' : 'bg-amber-500'}`}></div>
-              <span className="text-xs font-bold tracking-wider text-slate-300 uppercase">
-                {sourceMode} DATA FEED
-              </span>
-            </div>
-          </div>
+          <LiveClock />
         </header>
-
+        <SystemStatusBar />
         {/* MAIN LAYOUT: 70/30 */}
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* MAIN STAGE (70%) */}
           <div className="w-full lg:w-[70%] space-y-8">
-            
+
+
+
+
+
             {/* KPI CARDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               <KpiCard title="Connected Accounts" value={transactions.length > 0 ? "3" : "0"} icon={CreditCard} />
@@ -97,7 +115,11 @@ export default function DashboardPage() {
 
             {/* HYBRID RAIL FLOW */}
             <RailFlowEngine />
+
             <AnalyticsGrid transactions={transactions} />
+
+            <EventFeed />
+
 
             {/* TRANSACTION TABLE */}
             <div className="bg-[#0B1117] border border-slate-800 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
@@ -139,13 +161,12 @@ export default function DashboardPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded text-xs font-bold border ${
-                              txn.risk_level === 'HIGH' 
-                                ? 'bg-red-500/10 text-red-400 border-red-500/20' 
+                            <span className={`px-2.5 py-1 rounded text-xs font-bold border ${txn.risk_level === 'HIGH'
+                                ? 'bg-red-500/10 text-red-400 border-red-500/20'
                                 : txn.risk_level === 'MEDIUM'
-                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                            }`}>
+                                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                              }`}>
                               {txn.risk_score} - {txn.risk_level}
                             </span>
                           </td>
@@ -170,13 +191,13 @@ export default function DashboardPage() {
 
           {/* INTELLIGENCE SIDEBAR (30%) */}
           <div className="w-full lg:w-[30%] space-y-6">
-            
+
             <SidebarPanel title="Intelligence Brief" icon={Zap}>
               <p className="text-sm text-slate-400 leading-relaxed">
                 System is actively monitoring hybrid payment orchestrations across 3 major endpoints. Risk anomaly detection is nominal. Latency is within acceptable enterprise thresholds.
               </p>
             </SidebarPanel>
-            
+
             <SidebarPanel title="Active Rails" icon={ArrowRightLeft}>
               <div className="space-y-3">
                 <RailStatus name="ACH" status="Optimal" load="34%" />
