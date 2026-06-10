@@ -6,6 +6,7 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
+  Legend,
 } from "recharts";
 
 import { Transaction } from "@/types/transaction";
@@ -14,76 +15,185 @@ interface RailUsageChartProps {
   transactions: Transaction[];
 }
 
+const RAIL_COLORS: Record<string, { fill: string; text: string }> = {
+  ACH:     { fill: "#22D3EE", text: "var(--cyan-bright)" },
+  WIRE:    { fill: "#A78BFA", text: "var(--purple-bright)" },
+  RTP:     { fill: "#34D399", text: "var(--emerald-bright)" },
+  FEDNOW:  { fill: "#FCD34D", text: "var(--amber-bright)" },
+};
+
+const DEFAULT_COLORS = ["#22D3EE", "#A78BFA", "#34D399", "#FCD34D", "#F87171"];
+
+function CustomTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const d = payload[0];
+    return (
+      <div
+        style={{
+          background: "#0B1220",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "10px",
+          padding: "10px 14px",
+          boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+        }}
+      >
+        <p className="section-label mb-1">{d.name}</p>
+        <p className="font-mono-data text-white font-semibold text-sm">
+          {d.value}{" "}
+          <span className="text-slate-500 font-normal text-xs">
+            transaction{d.value !== 1 ? "s" : ""}
+          </span>
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomLegend({ payload }: any) {
+  if (!payload) return null;
+  return (
+    <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-2">
+      {payload.map((entry: any, i: number) => (
+        <div key={i} className="flex items-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ background: entry.color }}
+          />
+          <span className="font-mono-data text-[11px] text-slate-400 uppercase tracking-wider">
+            {entry.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function RailUsageChart({
   transactions,
 }: RailUsageChartProps) {
-
   const railMap: Record<string, number> = {};
 
-  transactions.forEach((transaction) => {
-    railMap[transaction.rail] =
-      (railMap[transaction.rail] || 0) + 1;
+  transactions.forEach((t) => {
+    railMap[t.rail] = (railMap[t.rail] || 0) + 1;
   });
 
-  const data = Object.entries(railMap).map(
-    ([name, value]) => ({
-      name,
-      value,
-    })
-  );
+  const data = Object.entries(railMap).map(([name, value]) => ({
+    name,
+    value,
+  }));
 
-  const COLORS = [
-    "#06b6d4",
-    "#3b82f6",
-    "#10b981",
-    "#f59e0b",
-  ];
+  if (!data.length) {
+    return (
+      <div
+        className="rounded-xl p-6 flex items-center justify-center h-[260px]"
+        style={{
+          background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
+          border: "1px solid rgba(255,255,255,0.05)",
+        }}
+      >
+        <p className="font-mono-data text-xs text-slate-600">No rail data available</p>
+      </div>
+    );
+  }
+
+  const totalTxns = transactions.length;
 
   return (
-    <div className="bg-[#0B1117] border border-slate-800 rounded-2xl p-6">
-
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-white">
-          Rail Distribution
-        </h2>
-
-        <p className="text-slate-400 text-sm mt-2">
-          Payment routing distribution across active rails.
-        </p>
+    <div
+      className="rounded-xl p-6 flex flex-col justify-between h-[280px]"
+      style={{
+        background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
+        border: "1px solid rgba(255,255,255,0.05)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
+      {/* Header */}
+      <div>
+        <p className="section-label mb-1">Rail Distribution</p>
+        <h3 className="text-white font-semibold text-base leading-none">
+          Payment Routing
+        </h3>
       </div>
 
-      <div className="h-[300px]">
+      {/* Content */}
+      <div className="flex-1 flex items-center mt-4">
+        {/* Chart */}
+        <div className="w-1/2 h-full relative flex items-center justify-center min-h-[150px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <defs>
+                <filter id="glow-pie">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                  <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={60}
+                outerRadius={85}
+                paddingAngle={4}
+                strokeWidth={0}
+              >
+                {data.map((entry, index) => {
+                  const colorEntry = RAIL_COLORS[entry.name];
+                  return (
+                    <Cell
+                      key={entry.name}
+                      fill={colorEntry ? colorEntry.fill : DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
+                      opacity={0.9}
+                    />
+                  );
+                })}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+          {/* Center Label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+             <span className="text-white font-bold text-3xl leading-none">{totalTxns}</span>
+             <span className="font-mono-data text-[10px] text-slate-500 uppercase tracking-widest mt-1.5">TXN</span>
+          </div>
+        </div>
 
-        <ResponsiveContainer width="100%" height="100%">
-
-          <PieChart>
-
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              innerRadius={70}
-              outerRadius={110}
-              paddingAngle={4}
-            >
-
-              {data.map((entry, index) => (
-                <Cell
-                  key={entry.name}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-
-            </Pie>
-
-            <Tooltip />
-
-          </PieChart>
-
-        </ResponsiveContainer>
-
+        {/* Legend */}
+        <div className="w-1/2 flex flex-col gap-4 pl-8 justify-center">
+          {data.sort((a, b) => b.value - a.value).map((entry, i) => {
+            const colorEntry = RAIL_COLORS[entry.name];
+            const color = colorEntry ? colorEntry.fill : DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+            const pct = Math.round((entry.value / totalTxns) * 100);
+            return (
+              <div key={entry.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ background: color, boxShadow: `0 0 10px ${color}60` }}
+                  />
+                  <span className="font-mono-data text-xs font-semibold text-slate-200 tracking-wider">
+                    {entry.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-5">
+                  <span className="font-mono-data text-xs text-slate-400 text-right w-12">
+                    {entry.value} TXN
+                  </span>
+                  <span 
+                    className="font-mono-data text-sm font-bold text-right w-10"
+                    style={{ color: color }}
+                  >
+                    {pct}%
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-
     </div>
   );
 }

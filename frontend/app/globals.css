@@ -1,14 +1,381 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   ENTERPRISE DESIGN SYSTEM — CSS CUSTOM PROPERTIES
+   ============================================================ */
+
+:root {
+  /* Background Scale */
+  --bg-base:     #020617;
+  --bg-deep:     #040d1a;
+  --bg-surface:  #081120;
+  --bg-elevated: #0B1220;
+  --bg-card:     #0d1526;
+  --bg-border:   #111827;
+
+  /* Text Scale */
+  --text-primary:   #FFFFFF;
+  --text-secondary: #CBD5E1;
+  --text-muted:     #94A3B8;
+  --text-dim:       #64748B;
+  --text-faint:     #334155;
+
+  /* Accent — Cyan (Operational) */
+  --cyan-bright:  #06B6D4;
+  --cyan-mid:     #0891B2;
+  --cyan-dim:     #0E7490;
+  --cyan-glow:    rgba(34, 211, 238, 0.12);
+  --cyan-border:  rgba(34, 211, 238, 0.2);
+
+  /* Accent — Emerald (Healthy) */
+  --emerald-bright: #10B981;
+  --emerald-mid:    #059669;
+  --emerald-dim:    #047857;
+  --emerald-glow:   rgba(52, 211, 153, 0.1);
+  --emerald-border: rgba(52, 211, 153, 0.2);
+
+  /* Accent — Amber (Warning) */
+  --amber-bright: #FCD34D;
+  --amber-mid:    #F59E0B;
+  --amber-dim:    #D97706;
+  --amber-glow:   rgba(245, 158, 11, 0.1);
+  --amber-border: rgba(245, 158, 11, 0.2);
+
+  /* Accent — Red (Risk) */
+  --red-bright: #F87171;
+  --red-mid:    #EF4444;
+  --red-dim:    #DC2626;
+  --red-glow:   rgba(239, 68, 68, 0.1);
+  --red-border: rgba(239, 68, 68, 0.2);
+
+  /* Accent — Purple (Intelligence) */
+  --purple-bright: #A78BFA;
+  --purple-mid:    #8B5CF6;
+  --purple-dim:    #7C3AED;
+  --purple-glow:   rgba(167, 139, 250, 0.1);
+  --purple-border: rgba(167, 139, 250, 0.2);
+
+  /* Glass Surface */
+  --glass-bg:     rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-hover:  rgba(255, 255, 255, 0.035);
+
+  /* Shadows (Premium Depth System) */
+  --shadow-card:    inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-panel:   inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.04), 0 24px 64px rgba(0,0,0,0.5);
+  --shadow-elevated: 0 4px 16px rgba(0,0,0,0.6);
+
+  /* Spacing Scale (8px rhythm) */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+
+  /* Border Radius */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
+  --radius-2xl: 24px;
+}
+
+/* ============================================================
+   BASE RESET & TYPOGRAPHY
+   ============================================================ */
+
 html {
-  background: #030712;
+  background: var(--bg-base);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: #030712;
-  color: white;
+  background: var(--bg-base);
+  color: var(--text-secondary);
   margin: 0;
   padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.25);
+  color: #fff;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Custom Thin Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================================
+   KEYFRAME ANIMATIONS
+   ============================================================ */
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 1; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes flow-dash {
+  0%   { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scan-line {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(2400%); opacity: 0; }
+}
+
+@keyframes boot-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes flow-move {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+/* Glass Card Surface */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Enterprise Panel */
+.enterprise-panel {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: var(--shadow-card);
+}
+
+/* Section Label */
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Monospaced data */
+.font-mono-data {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* Tabular numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status Dot — Pulsing */
+.status-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+.status-dot.dot-cyan       { background: var(--cyan-bright); }
+.status-dot.dot-cyan::after { background: var(--cyan-bright); }
+
+.status-dot.dot-emerald       { background: var(--emerald-bright); }
+.status-dot.dot-emerald::after { background: var(--emerald-bright); }
+
+.status-dot.dot-amber       { background: var(--amber-mid); }
+.status-dot.dot-amber::after { background: var(--amber-mid); }
+
+.status-dot.dot-red       { background: var(--red-mid); }
+.status-dot.dot-red::after { background: var(--red-mid); }
+
+/* Flow connector line animation */
+.flow-line {
+  position: relative;
+  overflow: hidden;
+}
+.flow-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan-bright), transparent);
+  transform: translateY(-50%);
+  animation: flow-move 1.8s linear infinite;
+}
+
+/* Animate in */
+.animate-slide-up {
+  animation: slide-up-fade 0.4s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+/* KPI Card hover (Secondary Premium Depth) */
+.kpi-card {
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.03), 
+    0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(34, 211, 238, 0.15), 
+    0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Table row hover */
+.ledger-row {
+  transition: background-color 0.12s ease;
+}
+.ledger-row:hover {
+  background-color: rgba(255,255,255,0.025);
+}
+
+/* Rail badge colors */
+.rail-ach  { color: var(--cyan-bright);    border-color: var(--cyan-border);    background: var(--cyan-glow); }
+.rail-wire { color: var(--purple-bright);  border-color: var(--purple-border);  background: var(--purple-glow); }
+.rail-rtp  { color: var(--emerald-bright); border-color: var(--emerald-border); background: var(--emerald-glow); }
+
+/* Recharts custom tooltip */
+.recharts-tooltip-enterprise {
+  background: #0B1220 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.6) !important;
+  padding: 10px 14px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 12px !important;
+  color: #CBD5E1 !important;
+}
+
+/* ============================================================
+   EXECUTIVE PREMIUM UI CLASSES & ANIMATIONS
+   ============================================================ */
+
+/* Data Sweep Animation for Connectors */
+@keyframes data-sweep {
+  0% { transform: translateX(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+.animate-data-sweep {
+  animation: data-sweep 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Gentle Pulse for Status Indicators */
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+}
+.animate-gentle-pulse {
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+/* Premium Primary Card Depth */
+.premium-card {
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.04), 
+    0 12px 40px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.premium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.08), 
+    0 24px 64px rgba(0, 0, 0, 0.6);
 }

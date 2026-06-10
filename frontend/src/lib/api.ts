@@ -16,7 +16,7 @@ export async function fetchTransactions(): Promise<TransactionsResponse> {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("API Error:", error);
+    console.warn("Backend unavailable. Using MOCK mode.");
     return {
       source_mode: "ERROR",
       transactions: [],
