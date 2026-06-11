@@ -6,10 +6,10 @@ import {
   Cell,
   ResponsiveContainer,
   Tooltip,
-  Legend,
 } from "recharts";
 
 import { Transaction } from "@/types/transaction";
+import { calculateMetrics } from "@/lib/metrics";
 
 interface RailUsageChartProps {
   transactions: Transaction[];
@@ -24,7 +24,7 @@ const RAIL_COLORS: Record<string, { fill: string; text: string }> = {
 
 const DEFAULT_COLORS = ["#22D3EE", "#A78BFA", "#34D399", "#FCD34D", "#F87171"];
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; color?: string; payload?: unknown }> }) {
   if (active && payload && payload.length) {
     const d = payload[0];
     return (
@@ -50,43 +50,20 @@ function CustomTooltip({ active, payload }: any) {
   return null;
 }
 
-function CustomLegend({ payload }: any) {
-  if (!payload) return null;
-  return (
-    <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-2">
-      {payload.map((entry: any, i: number) => (
-        <div key={i} className="flex items-center gap-2">
-          <div
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ background: entry.color }}
-          />
-          <span className="font-mono-data text-[11px] text-slate-400 uppercase tracking-wider">
-            {entry.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function RailUsageChart({
   transactions,
 }: RailUsageChartProps) {
-  const railMap: Record<string, number> = {};
+  const { railCounts, railPercentages, totalTxns } = calculateMetrics(transactions);
 
-  transactions.forEach((t) => {
-    railMap[t.rail] = (railMap[t.rail] || 0) + 1;
-  });
-
-  const data = Object.entries(railMap).map(([name, value]) => ({
+  const data = Object.entries(railCounts).map(([name, value]) => ({
     name,
     value,
-  }));
+  })).sort((a, b) => b.value - a.value);
 
   if (!data.length) {
     return (
       <div
-        className="rounded-xl p-6 flex items-center justify-center h-[260px]"
+        className="rounded-xl p-5 flex items-center justify-center h-[260px]"
         style={{
           background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
           border: "1px solid rgba(255,255,255,0.05)",
@@ -97,11 +74,11 @@ export default function RailUsageChart({
     );
   }
 
-  const totalTxns = transactions.length;
+
 
   return (
     <div
-      className="rounded-xl p-6 flex flex-col justify-between h-[280px]"
+      className="rounded-xl p-5 flex flex-col justify-between h-[280px]"
       style={{
         background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
         border: "1px solid rgba(255,255,255,0.05)",
@@ -163,10 +140,10 @@ export default function RailUsageChart({
 
         {/* Legend */}
         <div className="w-1/2 flex flex-col gap-4 pl-8 justify-center">
-          {data.sort((a, b) => b.value - a.value).map((entry, i) => {
+          {data.map((entry, i) => {
             const colorEntry = RAIL_COLORS[entry.name];
             const color = colorEntry ? colorEntry.fill : DEFAULT_COLORS[i % DEFAULT_COLORS.length];
-            const pct = Math.round((entry.value / totalTxns) * 100);
+            const pct = railPercentages[entry.name] || 0;
             return (
               <div key={entry.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

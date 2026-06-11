@@ -35,30 +35,55 @@ _USERS = [
 _STATUSES = ["COMPLETED", "PENDING", "PROCESSING"]
 
 
+def compute_routing(amount: float, risk_score: int, priority: str) -> tuple[str, str]:
+    if amount >= 50000:
+        return "WIRE", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+    elif amount >= 10000:
+        return "WIRE", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+    elif priority == "URGENT" and risk_score < 55:
+        return "RTP", "MEDIUM" if risk_score >= 35 else "LOW"
+    elif risk_score >= 70:
+        return "WIRE", "HIGH"
+    elif priority == "BATCH":
+        return "ACH", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+    elif priority == "URGENT" and risk_score >= 55:
+        return "RTP", "HIGH" if risk_score >= 65 else "MEDIUM"
+    else:
+        return "ACH", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+
 def _generate_transaction() -> dict:
     val = random.random()
     if val < 0.60:
-        risk_score = random.randint(20, 39)
-        risk_level = "LOW"
+        risk_score = random.randint(20, 34)
     elif val < 0.85:
-        risk_score = random.randint(40, 69)
-        risk_level = "MEDIUM"
-    elif val < 0.95:
-        risk_score = random.randint(70, 94)
-        risk_level = "HIGH"
+        risk_score = random.randint(35, 64)
     else:
-        risk_score = random.randint(95, 100)
-        risk_level = "CRITICAL"
+        risk_score = random.randint(65, 94)
+
+    # Some high amounts to trigger wire rules
+    amt_val = random.random()
+    if amt_val < 0.1:
+        amount = round(random.uniform(50000.0, 150_000.0), 2)
+    elif amt_val < 0.3:
+        amount = round(random.uniform(10000.0, 49_999.0), 2)
+    else:
+        amount = round(random.uniform(50.0, 9_999.0), 2)
+
+    priority = random.choice(["STANDARD", "STANDARD", "URGENT", "BATCH"])
+
+    rail, risk_level = compute_routing(amount, risk_score, priority)
+
+    status = "PENDING" if risk_level == "HIGH" and random.random() < 0.5 else "COMPLETED"
 
     return {
         "id": str(uuid.uuid4()),
         "user": random.choice(_USERS),
         "bank": random.choice(_BANKS),
-        "amount": round(random.uniform(50.0, 25_000.0), 2),
-        "rail": random.choice(_RAILS),
+        "amount": amount,
+        "rail": rail,
         "risk_score": risk_score,
         "risk_level": risk_level,
-        "status": random.choice(_STATUSES),
+        "status": status,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 

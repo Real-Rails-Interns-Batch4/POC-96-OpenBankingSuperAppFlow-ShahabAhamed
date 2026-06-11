@@ -3,15 +3,15 @@
 import { useMemo } from "react";
 import { Transaction } from "@/types/transaction";
 import {
-  Brain,
   TrendingUp,
   TrendingDown,
   AlertTriangle,
   CheckCircle2,
   Zap,
-  BarChart3,
   Activity
 } from "lucide-react";
+
+import { calculateMetrics } from "@/lib/metrics";
 
 interface AIInsightsEngineProps {
   transactions: Transaction[];
@@ -22,7 +22,7 @@ interface Insight {
   category: "VOLUME" | "RISK" | "ROUTING" | "SETTLEMENT" | "OPERATIONS";
   text: string;
   color: string;
-  Icon: any;
+  Icon: React.ElementType;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -60,11 +60,10 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
     }
 
     const result: Insight[] = [];
-    const total = transactions.length;
-    const prevTotal = previousTransactions.length || 1;
+    const metrics = calculateMetrics(transactions);
+    const { totalTxns: total, totalAmount, railCounts, completedCount, pendingCount } = metrics;
 
     // 1. VOLUME / INSTITUTION CONCENTRATION
-    const totalAmount = transactions.reduce((s, t) => s + t.amount, 0);
     const instVolumes: Record<string, number> = {};
     transactions.forEach((t) => { instVolumes[t.bank] = (instVolumes[t.bank] || 0) + t.amount; });
     const topInstEntry = Object.entries(instVolumes).sort((a, b) => b[1] - a[1])[0];
@@ -102,8 +101,6 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
     }
 
     // 3. ROUTING / RAIL COMPARISON
-    const railCounts: Record<string, number> = {};
-    transactions.forEach((t) => { railCounts[t.rail] = (railCounts[t.rail] || 0) + 1; });
     
     if (railCounts["WIRE"] > 0) {
       result.push({
@@ -129,14 +126,12 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
     }
 
     // 4. SETTLEMENT COMPLETION COMPARISON
-    const completed = transactions.filter((t) => t.status === "COMPLETED").length;
-    
-    const rate = Number(((completed / total) * 100).toFixed(1));
+    const rate = Number(((completedCount / total) * 100).toFixed(1));
 
     if (rate < 100) {
       result.push({
         category: "SETTLEMENT",
-        text: `${total - completed} settlements pending final clearance.`,
+        text: `${pendingCount} settlements pending final clearance.`,
         color: rate >= 70 ? "#34D399" : "#F59E0B",
         Icon: rate >= 70 ? CheckCircle2 : AlertTriangle,
       });

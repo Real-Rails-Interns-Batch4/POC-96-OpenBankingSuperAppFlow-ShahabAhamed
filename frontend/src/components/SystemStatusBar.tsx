@@ -11,13 +11,13 @@ function getServiceStatus(sourceState: "LIVE_API" | "MOCK_MODE" | "OFFLINE_FALLB
 
   // MOCK or OFFLINE fallback
   switch (name) {
-    case "Connected Banks":     return { status: "OFFLINE",         desc: "Simulated institutional links", uptime: null, color: "dot-red",   textColor: "text-red-400" };
-    case "Consent Layer":       return { status: "DISCONNECTED",    desc: "Mock OAuth 2.0 flow",           uptime: null, color: "dot-red",   textColor: "text-red-400" };
+    case "Connected Banks":     return { status: "SIMULATED",       desc: "Simulated institutional links", uptime: null, color: "dot-amber", textColor: "text-amber-400" };
+    case "Consent Layer":       return { status: "MOCK ACTIVE",     desc: "Mock OAuth 2.0 flow",           uptime: null, color: "dot-amber", textColor: "text-amber-400" };
     case "Risk Screening":      return { status: "SIMULATED",       desc: "Synthetic anomaly detection",   uptime: null, color: "dot-amber", textColor: "text-amber-400" };
     case "Rail Routing":        return { status: "SIMULATION MODE", desc: "Simulated routing logic",       uptime: null, color: "dot-amber", textColor: "text-amber-400" };
-    case "Settlement Status":   return { status: "PAUSED",          desc: "Simulated T+1 clearance",       uptime: null, color: "dot-amber", textColor: "text-amber-400" };
+    case "Settlement Status":   return { status: "SIMULATED",       desc: "Simulated T+1 clearance",       uptime: null, color: "dot-amber", textColor: "text-amber-400" };
   }
-  return { status: "UNKNOWN", desc: "Unknown state", uptime: null, color: "dot-red", textColor: "text-red-400" };
+  return { status: "UNKNOWN", desc: "Unknown state", uptime: null, color: "dot-amber", textColor: "text-amber-400" };
 }
 
 interface SystemStatusBarProps {

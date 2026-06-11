@@ -9,7 +9,7 @@ const INSTITUTIONS = [
     name: "Chase",
     initials: "C",
     color: "#22D3EE",
-    consentStatus: "Active",
+    consentStatus: "Verified",
     expiryDate: "2025-12-31",
     accounts: ["Checking", "Savings", "Credit"],
     lastSync: "2 min ago",
@@ -21,8 +21,8 @@ const INSTITUTIONS = [
     name: "Bank of America",
     initials: "B",
     color: "#34D399",
-    consentStatus: "Active",
-    expiryDate: "2025-11-15",
+    consentStatus: "Expiring Soon",
+    expiryDate: "2024-07-15",
     accounts: ["Checking", "Investment"],
     lastSync: "5 min ago",
     syncHealth: "Healthy" as const,
@@ -100,7 +100,7 @@ export default function OpenBankingOverview({ connectedBanksCount }: OpenBanking
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-5">
         {/* Account coverage summary (Compact) */}
         <div className="flex items-center gap-4 mb-4 pb-4 border-b border-white/5">
           <p className="section-label whitespace-nowrap">Account Coverage</p>
@@ -138,97 +138,113 @@ export default function OpenBankingOverview({ connectedBanksCount }: OpenBanking
           </div>
         </div>
 
-        {/* Institution List (Dense Horizontal Rows) */}
-        <div className="space-y-2">
-          {INSTITUTIONS.map((inst, i) => (
-            <div
-              key={i}
-              className="px-4 py-2.5 rounded-lg transition-all duration-150 hover:bg-white/[0.03] flex items-center gap-4"
-              style={{
-                background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.04)",
-              }}
-            >
-              {/* Logo & Name */}
-              <div className="flex items-center gap-3 w-48 flex-shrink-0">
-                <div
-                  className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 font-bold text-xs"
-                  style={{
-                    background: `${inst.color}12`,
-                    color: inst.color,
-                    border: `1px solid ${inst.color}25`,
-                  }}
-                >
-                  {inst.initials}
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-white leading-tight">
-                    {inst.name}
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{
-                        background: inst.syncHealth === "Healthy" ? "#34D399" : "#F59E0B",
-                        animation: inst.syncHealth !== "Healthy" ? "status-pulse 2s ease-in-out infinite" : "none",
-                      }}
-                    />
-                    <span
-                      className="font-mono-data text-[8px] font-semibold uppercase tracking-wider"
-                      style={{ color: inst.consentStatus === "Active" ? "#34D399" : "#F59E0B" }}
-                    >
-                      {inst.consentStatus}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Account Types */}
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap gap-1">
-                  {inst.accounts.map((acc) => (
-                    <span
-                      key={acc}
-                      className="font-mono-data text-[9px] px-1.5 py-0.5 rounded"
-                      style={{
-                        background: "rgba(255,255,255,0.04)",
-                        color: "#64748B",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                      }}
-                    >
-                      {acc}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Standard & Sync */}
-              <div className="w-40 flex-shrink-0 flex flex-col items-end gap-1">
-                <span
-                  className="font-mono-data text-[9px] px-1.5 py-0.5 rounded flex items-center justify-center"
-                  style={{
-                    background: `${inst.color}08`,
-                    color: inst.color,
-                    border: `1px solid ${inst.color}20`,
-                  }}
-                >
-                  {inst.apiVersion}
-                </span>
-                <div className="flex items-center gap-1 text-slate-500">
-                  <RefreshCw className="w-2.5 h-2.5" />
-                  <span className="font-mono-data text-[9px]">{inst.lastSync}</span>
-                </div>
-              </div>
-
-              {/* Balance */}
-              <div className="w-24 flex-shrink-0 text-right">
-                <span className="font-mono-data text-xs font-semibold text-white tabular-nums tracking-tight">
-                  {inst.balance}
-                </span>
-              </div>
+        {/* Institution List */}
+        {linkedBanks === 0 ? (
+          <div className="py-8 flex flex-col items-center justify-center text-center px-4" style={{ background: "rgba(255,255,255,0.01)" }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+              <RefreshCw className="w-5 h-5 text-slate-500" />
             </div>
-          ))}
-        </div>
+            <p className="text-sm font-medium text-slate-300">No connected institutions</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-[200px]">Awaiting active gateway synchronization to display open banking links.</p>
+          </div>
+        ) : (
+          <div className="space-y-2 overflow-x-auto pb-1 custom-scrollbar">
+            <div className="min-w-[700px] space-y-2">
+              {INSTITUTIONS.map((inst, i) => (
+                <div
+                  key={i}
+                  className="px-4 py-2.5 rounded-lg transition-all duration-150 hover:bg-white/[0.03] flex items-center gap-4"
+                  style={{
+                    background: "rgba(255,255,255,0.015)",
+                    border: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  {/* Logo & Name */}
+                  <div className="flex items-center gap-3 w-48 flex-shrink-0">
+                    <div
+                      className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 font-bold text-xs"
+                      style={{
+                        background: `${inst.color}12`,
+                        color: inst.color,
+                        border: `1px solid ${inst.color}25`,
+                      }}
+                    >
+                      {inst.initials}
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-white leading-tight">
+                        {inst.name}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span
+                          className="font-mono-data text-[8px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                          style={{
+                            color: inst.consentStatus === "Expiring Soon" ? "#F59E0B" : "#34D399",
+                            background: inst.consentStatus === "Expiring Soon" ? "rgba(245,158,11,0.1)" : "rgba(52,211,153,0.1)",
+                            border: `1px solid ${inst.consentStatus === "Expiring Soon" ? "rgba(245,158,11,0.2)" : "rgba(52,211,153,0.2)"}`
+                          }}
+                        >
+                          {inst.consentStatus}
+                        </span>
+                        <div
+                          className="w-1.5 h-1.5 rounded-full ml-auto"
+                          style={{
+                            background: inst.syncHealth === "Healthy" ? "#34D399" : "#F59E0B",
+                            animation: inst.syncHealth !== "Healthy" ? "status-pulse 2s ease-in-out infinite" : "none",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Account Types */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap gap-1">
+                      {inst.accounts.map((acc) => (
+                        <span
+                          key={acc}
+                          className="font-mono-data text-[9px] px-1.5 py-0.5 rounded"
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            color: "#64748B",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                          }}
+                        >
+                          {acc}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Standard & Sync */}
+                  <div className="w-40 flex-shrink-0 flex flex-col items-end gap-1">
+                    <span
+                      className="font-mono-data text-[9px] px-1.5 py-0.5 rounded flex items-center justify-center"
+                      style={{
+                        background: `${inst.color}08`,
+                        color: inst.color,
+                        border: `1px solid ${inst.color}20`,
+                      }}
+                    >
+                      {inst.apiVersion}
+                    </span>
+                    <div className="flex items-center gap-1 text-slate-500">
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      <span className="font-mono-data text-[9px]">{inst.lastSync}</span>
+                    </div>
+                  </div>
+
+                  {/* Balance */}
+                  <div className="w-24 flex-shrink-0 text-right">
+                    <span className="font-mono-data text-[11px] font-medium text-slate-400 tabular-nums tracking-tight">
+                      {inst.balance}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

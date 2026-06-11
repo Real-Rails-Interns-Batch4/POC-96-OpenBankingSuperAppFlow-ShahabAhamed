@@ -1,5 +1,7 @@
 import "./globals.css";
 
+/* eslint-disable @next/next/no-page-custom-font */
+
 export const metadata = {
   title: "Open Banking Intelligence Rail | Enterprise Payments Platform",
   description:

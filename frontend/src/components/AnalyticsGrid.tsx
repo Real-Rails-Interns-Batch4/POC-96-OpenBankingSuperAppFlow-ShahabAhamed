@@ -1,6 +1,7 @@
 import RailUsageChart from "@/components/RailUsageChart";
 import RiskDistributionChart from "@/components/RiskDistributionChart";
 import TransactionTimeline from "@/components/TransactionTimeline";
+import AnalyticsIntelligence from "@/components/AnalyticsIntelligence";
 
 import { Transaction } from "@/types/transaction";
 import { TelemetrySnapshot } from "../../app/page";
@@ -12,7 +13,6 @@ interface AnalyticsGridProps {
 
 export default function AnalyticsGrid({
   transactions,
-  telemetryHistory,
 }: AnalyticsGridProps) {
   return (
     <div className="space-y-6">
@@ -42,8 +42,13 @@ export default function AnalyticsGrid({
       </div>
 
       {/* Bottom Timeline */}
-      <div className="min-w-0">
-        <TransactionTimeline telemetryHistory={telemetryHistory} />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 min-w-0">
+          <TransactionTimeline transactions={transactions} />
+        </div>
+        <div className="xl:col-span-1 min-w-0">
+          <AnalyticsIntelligence transactions={transactions} />
+        </div>
       </div>
 
     </div>

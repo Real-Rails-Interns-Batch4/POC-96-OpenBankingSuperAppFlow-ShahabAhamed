@@ -5,10 +5,8 @@ import { Transaction } from "@/types/transaction";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
-  Clock,
   CheckCircle2,
   AlertTriangle,
-  Circle,
   Shield,
   Activity,
   FileCheck,

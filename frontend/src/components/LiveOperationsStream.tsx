@@ -30,7 +30,7 @@ export default function LiveOperationsStream({
 }: LiveOperationsStreamProps) {
   return (
     <div
-      className="rounded-xl overflow-hidden h-full flex flex-col"
+      className="rounded-xl h-full flex flex-col"
       style={{
         background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
         border: "1px solid rgba(255,255,255,0.05)",
@@ -39,7 +39,7 @@ export default function LiveOperationsStream({
     >
       {/* Header */}
       <div
-        className="px-6 py-4 flex items-center justify-between"
+        className="px-5 py-4 flex items-center justify-between"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
       >
         <div>
@@ -59,19 +59,19 @@ export default function LiveOperationsStream({
             </span>
           </div>
           <span className="font-mono-data text-[10px] text-slate-600">
-            {events.length} events
+            Showing latest synthetic operational events
           </span>
         </div>
       </div>
 
       {/* Event list */}
       <div
-        className="divide-y overflow-y-auto flex-1 custom-scrollbar min-h-0"
+        className="divide-y overflow-y-auto flex-1 custom-scrollbar min-h-0 pb-6"
         style={{
           borderColor: "rgba(255,255,255,0.03)",
         }}
       >
-        {events.map((evt, i) => {
+        {events.map((evt) => {
           const cfg = SEVERITY_CFG[evt.severity] || SEVERITY_CFG.INFO;
           return (
             <div
@@ -92,7 +92,7 @@ export default function LiveOperationsStream({
               />
 
               {/* Timestamp */}
-              <span className="font-mono-data text-[10px] text-slate-600 flex-shrink-0 mt-0.5 tabular-nums w-14">
+              <span className="font-mono-data text-[10px] text-slate-600 flex-shrink-0 mt-0.5 tabular-nums w-32">
                 {evt.timestamp}
               </span>
 

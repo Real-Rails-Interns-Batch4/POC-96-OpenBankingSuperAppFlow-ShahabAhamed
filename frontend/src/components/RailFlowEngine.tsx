@@ -1,83 +1,6 @@
 "use client";
 
-// Pipeline nodes — visual only, no business logic
-const PIPELINE_NODES = [
-  {
-    id: "bank",
-    label: "Connected Bank",
-    value: "Chase",
-    sublabel: "Primary Institution",
-    status: "ACTIVE",
-    accentColor: "#06B6D4",
-    accentBg: "rgba(6,182,212,0.06)",
-    accentBorder: "rgba(6,182,212,0.18)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21V7m0 0L4 10.5M12 7l8 3.5M4 10.5V19a1 1 0 001 1h14a1 1 0 001-1v-8.5M4 10.5h16" />
-      </svg>
-    ),
-  },
-  {
-    id: "consent",
-    label: "Consent Layer",
-    value: "Approved",
-    sublabel: "OAuth 2.0 · Plaid",
-    status: "VERIFIED",
-    accentColor: "#10B981",
-    accentBg: "rgba(16,185,129,0.05)",
-    accentBorder: "rgba(16,185,129,0.15)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-      </svg>
-    ),
-  },
-  {
-    id: "risk",
-    label: "Risk Engine",
-    value: "Score: 12",
-    sublabel: "ML Model v4.2",
-    status: "NOMINAL",
-    accentColor: "#F59E0B",
-    accentBg: "rgba(245,158,11,0.05)",
-    accentBorder: "rgba(245,158,11,0.15)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-      </svg>
-    ),
-  },
-  {
-    id: "rail",
-    label: "Rail Selected",
-    value: "ACH",
-    sublabel: "Optimal Route",
-    status: "ROUTING",
-    accentColor: "#06B6D4",
-    accentBg: "rgba(6,182,212,0.06)",
-    accentBorder: "rgba(6,182,212,0.18)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-      </svg>
-    ),
-  },
-  {
-    id: "settlement",
-    label: "Settlement",
-    value: "Complete",
-    sublabel: "T+1 · FedNow",
-    status: "SETTLED",
-    accentColor: "#10B981",
-    accentBg: "rgba(16,185,129,0.06)",
-    accentBorder: "rgba(16,185,129,0.18)",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 01-.75.75h-.75m0 0h-1.5m1.5 0v-9m0 0H3.75" />
-      </svg>
-    ),
-  },
-];
+import React from "react";
 
 // Animated connector between nodes
 function FlowConnector({ glowColor }: { glowColor: string }) {
@@ -113,17 +36,172 @@ function FlowConnector({ glowColor }: { glowColor: string }) {
   );
 }
 
-export default function RailFlowEngine() {
+interface RailFlowEngineProps {
+  activeRail?: string;
+}
+
+export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEngineProps) {
+  const getRailConfig = (rail: string) => {
+    switch (rail) {
+      case "WIRE":
+        return {
+          value: "WIRE",
+          sublabel: "High-Value Route",
+          color: "#A78BFA",
+          bg: "rgba(167,139,250,0.06)",
+          border: "rgba(167,139,250,0.18)",
+          settlementSublabel: "Same Day · FedWire",
+          whyItMatters: [
+            "Same-day finality",
+            "Best for high-value transfers",
+            "Strong compliance coverage",
+            "Confidence: 99%"
+          ],
+          governance: {
+            Operator: "Federal Reserve",
+            Network: "Fedwire",
+            Governance: "Regulation J",
+            Availability: "Business Hours",
+            "Settlement Window": "Same Day"
+          }
+        };
+      case "RTP":
+        return {
+          value: "RTP",
+          sublabel: "Expedited Route",
+          color: "#34D399",
+          bg: "rgba(52,211,153,0.06)",
+          border: "rgba(52,211,153,0.18)",
+          settlementSublabel: "Real-Time · TCH",
+          whyItMatters: [
+            "Instant settlement",
+            "24/7 availability",
+            "Best for urgent payments",
+            "Confidence: 96%"
+          ],
+          governance: {
+            Operator: "The Clearing House",
+            Network: "RTP",
+            Governance: "RTP Rulebook",
+            Availability: "24/7/365",
+            "Settlement Window": "Instant"
+          }
+        };
+      default:
+        return {
+          value: "ACH",
+          sublabel: "Optimal Route",
+          color: "#06B6D4",
+          bg: "rgba(6,182,212,0.06)",
+          border: "rgba(6,182,212,0.18)",
+          settlementSublabel: "T+1 · FedNow",
+          whyItMatters: [
+            "Lowest processing cost",
+            "Suitable for standard settlement",
+            "High routing confidence",
+            "Confidence: 94%"
+          ],
+          governance: {
+            Operator: "NACHA",
+            Network: "ACH Network",
+            Governance: "NACHA Rules",
+            Availability: "Business Days",
+            "Settlement Window": "T+1 Business Day"
+          }
+        };
+    }
+  };
+
+  const railConfig = getRailConfig(activeRail);
+
+  const PIPELINE_NODES = [
+    {
+      id: "bank",
+      label: "Connected Bank",
+      value: "Chase",
+      sublabel: "Primary Institution",
+      status: "ACTIVE",
+      accentColor: "#06B6D4",
+      accentBg: "rgba(6,182,212,0.06)",
+      accentBorder: "rgba(6,182,212,0.18)",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21V7m0 0L4 10.5M12 7l8 3.5M4 10.5V19a1 1 0 001 1h14a1 1 0 001-1v-8.5M4 10.5h16" />
+        </svg>
+      ),
+    },
+    {
+      id: "consent",
+      label: "Consent Layer",
+      value: "Approved",
+      sublabel: "OAuth 2.0 · Plaid",
+      status: "VERIFIED",
+      accentColor: "#10B981",
+      accentBg: "rgba(16,185,129,0.05)",
+      accentBorder: "rgba(16,185,129,0.15)",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+      ),
+    },
+    {
+      id: "risk",
+      label: "Risk Engine",
+      value: "Score: 12",
+      sublabel: "ML Model v4.2",
+      status: "NOMINAL",
+      accentColor: "#F59E0B",
+      accentBg: "rgba(245,158,11,0.05)",
+      accentBorder: "rgba(245,158,11,0.15)",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+        </svg>
+      ),
+    },
+    {
+      id: "rail",
+      label: "Rail Selected",
+      value: railConfig.value,
+      sublabel: railConfig.sublabel,
+      status: "ROUTING",
+      accentColor: railConfig.color,
+      accentBg: railConfig.bg,
+      accentBorder: railConfig.border,
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+        </svg>
+      ),
+    },
+    {
+      id: "settlement",
+      label: "Settlement",
+      value: "Complete",
+      sublabel: railConfig.settlementSublabel,
+      status: "SETTLED",
+      accentColor: "#10B981",
+      accentBg: "rgba(16,185,129,0.06)",
+      accentBorder: "rgba(16,185,129,0.18)",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 01-.75.75h-.75m0 0h-1.5m1.5 0v-9m0 0H3.75" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <div
-      className="premium-card rounded-xl p-6"
+      className="premium-card rounded-xl p-5"
       style={{
         background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
         border: "1px solid rgba(255,255,255,0.05)",
       }}
     >
       {/* Header */}
-      <div className="flex flex-col mb-2">
+      <div className="flex flex-col mb-3">
         <div className="flex items-center gap-4 mb-1.5">
           <p className="section-label mb-0">Payment Orchestration Pipeline</p>
           <div className="flex items-center gap-2 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
@@ -144,78 +222,129 @@ export default function RailFlowEngine() {
         </p>
       </div>
 
-      {/* Flow */}
-      <div className="flex items-center w-full overflow-x-auto pt-6 pb-4">
-        {PIPELINE_NODES.map((node, index) => {
-          const isLast = index === PIPELINE_NODES.length - 1;
-          const elements = [
-            <div
-              key={`${node.id}-node`}
-              className="premium-card-secondary w-[180px] shrink-0 rounded-lg p-5 flex flex-col justify-center gap-2.5 cursor-default relative"
-              style={{
-                background: node.accentBg,
-                border: `1px solid ${node.accentBorder}`,
-                boxShadow: `0 0 20px ${node.accentColor}08 inset`,
-              }}
-            >
-              {/* Decision Confidence Indicator */}
-              {node.id === "rail" && (
-                <div 
-                  className="absolute -top-2.5 -right-2 px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20 text-[9px] font-mono-data text-cyan-400 whitespace-nowrap shadow-sm shadow-cyan-500/10"
-                >
-                  94% CONF
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+        {/* LEFT SIDE: Pipeline (80% approx) */}
+        <div className="lg:col-span-4 flex items-center w-full overflow-x-auto">
+          {PIPELINE_NODES.map((node, index) => {
+            const isLast = index === PIPELINE_NODES.length - 1;
+            const elements = [
+              <div
+                key={`${node.id}-node`}
+                className={`premium-card-secondary w-[180px] shrink-0 rounded-lg p-4 flex flex-col justify-center gap-2.5 cursor-default relative ${node.id === "rail" ? "animate-pulse" : ""}`}
+                style={{
+                  background: node.accentBg,
+                  border: `1px solid ${node.accentBorder}`,
+                  boxShadow: node.id === "rail" ? `0 0 20px ${node.accentColor}20 inset, 0 0 10px ${node.accentColor}15` : `0 0 20px ${node.accentColor}08 inset`,
+                }}
+              >
+                {/* Icon + status */}
+                <div className="flex items-center justify-between">
+                  <div
+                    className="flex items-center justify-center w-8 h-8 rounded-md"
+                    style={{
+                      color: node.accentColor,
+                      background: "rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    {node.icon}
+                  </div>
+                  <span
+                    className="font-mono-data text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded"
+                    style={{
+                      color: node.accentColor,
+                      background: "rgba(0,0,0,0.25)",
+                      opacity: 0.9,
+                    }}
+                  >
+                    {node.status}
+                  </span>
                 </div>
-              )}
-              {/* Icon + status */}
-              <div className="flex items-center justify-between">
-                <div
-                  className="flex items-center justify-center w-8 h-8 rounded-md"
-                  style={{
-                    color: node.accentColor,
-                    background: "rgba(0,0,0,0.2)",
-                  }}
-                >
-                  {node.icon}
+
+                {/* Label */}
+                <div className="mt-1">
+                  <p className="section-label mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>
+                    {node.label}
+                  </p>
+                  {/* Value */}
+                  <p
+                    className="text-sm font-bold leading-none"
+                    style={{ color: node.accentColor }}
+                  >
+                    {node.value}
+                  </p>
                 </div>
-                <span
-                  className="font-mono-data text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded"
-                  style={{
-                    color: node.accentColor,
-                    background: "rgba(0,0,0,0.25)",
-                    opacity: 0.9,
-                  }}
-                >
-                  {node.status}
-                </span>
-              </div>
 
-              {/* Label */}
-              <div className="mt-1">
-                <p className="section-label mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>
-                  {node.label}
-                </p>
-                {/* Value */}
-                <p
-                  className="text-sm font-bold leading-none"
-                  style={{ color: node.accentColor }}
-                >
-                  {node.value}
+                {/* Sublabel */}
+                <p className="font-mono-data text-[10px] text-slate-500 mt-0.5">
+                  {node.sublabel}
                 </p>
               </div>
+            ];
 
-              {/* Sublabel */}
-              <p className="font-mono-data text-[10px] text-slate-500 mt-0.5">
-                {node.sublabel}
+            if (!isLast) {
+              elements.push(<FlowConnector key={`${node.id}-conn`} glowColor={node.accentColor} />);
+            }
+
+            return elements;
+          })}
+        </div>
+
+        {/* RIGHT SIDE: Insight Cards (20% approx) */}
+        <div className="lg:col-span-1 flex flex-col gap-4 h-full">
+          {/* Card 1 - Why This Matters */}
+          <div 
+            className="p-4 rounded-xl flex flex-col flex-1"
+            style={{ 
+              background: "rgba(255,255,255,0.015)", 
+              border: `1px solid ${railConfig.border}`,
+              boxShadow: `0 0 15px ${railConfig.color}05 inset`
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: railConfig.color }} />
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: railConfig.color }}>
+                  Why This Matters
+                </p>
+              </div>
+              <span className="text-[9px] font-mono-data px-1.5 py-0.5 rounded animate-pulse" style={{ background: `${railConfig.color}15`, color: railConfig.color }}>
+                {railConfig.value === "WIRE" ? "99% CONF" : railConfig.value === "RTP" ? "96% CONF" : "94% CONF"}
+              </span>
+            </div>
+            <ul className="text-xs text-slate-300 space-y-2 flex-1">
+              {railConfig.whyItMatters.map((point, i) => (
+                <li key={i} className="flex items-start gap-1.5">
+                  <span className="opacity-40 text-[10px] mt-0.5" style={{ color: railConfig.color }}>•</span>
+                  <span className="leading-snug">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Card 2 - Who Controls The Rail */}
+          <div 
+            className="p-4 rounded-xl flex flex-col flex-1"
+            style={{ 
+              background: "rgba(255,255,255,0.015)", 
+              border: "1px solid rgba(255,255,255,0.05)"
+            }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-500 flex-shrink-0" />
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                Who Controls The Rail
               </p>
             </div>
-          ];
-
-          if (!isLast) {
-            elements.push(<FlowConnector key={`${node.id}-conn`} glowColor={node.accentColor} />);
-          }
-
-          return elements;
-        })}
+            <div className="space-y-2.5 mt-auto">
+              {Object.entries(railConfig.governance).map(([key, val]) => (
+                <div key={key} className="flex items-center justify-between">
+                  <span className="text-[9px] uppercase tracking-wider text-slate-500">{key}</span>
+                  <span className="text-[10px] font-medium text-slate-300 text-right">{val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

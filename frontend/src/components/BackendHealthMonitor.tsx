@@ -21,7 +21,7 @@ interface ServiceInfo {
   lastCheck: string;
 }
 
-const STATUS_CFG: Record<ServiceState, { color: string; label: string; Icon: any }> = {
+const STATUS_CFG: Record<ServiceState, { color: string; label: string; Icon: React.ElementType }> = {
   ONLINE:   { color: "#34D399", label: "ONLINE",       Icon: CheckCircle2 },
   OFFLINE:  { color: "#F87171", label: "OFFLINE",      Icon: XCircle },
   DEGRADED: { color: "#F59E0B", label: "DEGRADED",     Icon: AlertCircle },
@@ -40,15 +40,13 @@ export default function BackendHealthMonitor({
   // DB Simulation State
   const [dbStatus, setDbStatus] = useState<"ONLINE" | "DEGRADED">("ONLINE");
 
-  const uptimeBase = useMemo(() => {
-    return {
-      api: (99.9 + Math.random() * 0.09).toFixed(3),
-      risk: (99.95 + Math.random() * 0.04).toFixed(3),
-      db: (99.8 + Math.random() * 0.1).toFixed(3),
-      plaid: "99.999",
-      settlement: (99.9 + Math.random() * 0.05).toFixed(3),
-    };
-  }, []);
+  const [uptimeBase] = useState(() => ({
+    api: (99.9 + Math.random() * 0.09).toFixed(3),
+    risk: (99.95 + Math.random() * 0.04).toFixed(3),
+    db: (99.8 + Math.random() * 0.1).toFixed(3),
+    plaid: "99.999",
+    settlement: (99.9 + Math.random() * 0.05).toFixed(3),
+  }));
 
   useEffect(() => {
     // Database fluctuates occasionally
@@ -62,7 +60,7 @@ export default function BackendHealthMonitor({
 
   const isLive = sourceState === "LIVE_API";
 
-  const services: ServiceInfo[] = [
+  const services: ServiceInfo[] = useMemo(() => [
     {
       name: "Backend API",
       status: isLive ? apiStatus : "OFFLINE",
@@ -98,7 +96,7 @@ export default function BackendHealthMonitor({
       uptime: isLive ? `${uptimeBase.settlement}%` : null,
       lastCheck: lastCheckStr,
     },
-  ];
+  ], [isLive, apiStatus, apiLatency, uptimeBase, lastCheckStr, transactions, dbStatus]);
 
   // Add random jitter to latencies
   const [jitteredServices, setJitteredServices] = useState<ServiceInfo[]>(services);
@@ -153,9 +151,9 @@ export default function BackendHealthMonitor({
         return (
           <div
             key={i}
-            className="flex items-center justify-between py-1.5 px-3 rounded-md transition-colors duration-150"
+            className="flex items-center justify-between py-1.5 px-3 rounded-lg transition-colors duration-150"
             style={{
-              background: "rgba(255,255,255,0.015)",
+              background: "rgba(255,255,255,0.02)",
               border: "1px solid rgba(255,255,255,0.04)",
             }}
           >

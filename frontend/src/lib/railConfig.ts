@@ -334,43 +334,21 @@ export function generateNarrative(
   input: { amount: number; riskScore: number; priority: Priority }
 ): { primary: string; secondary: string } {
   const { amount, riskScore, priority } = input;
-  const amtFmt = `$${amount.toLocaleString()}`;
 
   if (rail === "WIRE") {
-    if (amount >= 50_000) return {
-      primary: `WIRE selected because the transaction value of ${amtFmt} exceeds the institutional settlement threshold. Federal Regulation J mandates Fedwire for same-day finality on high-value transfers.`,
-      secondary: `Federal Reserve Fedwire provides Real-Time Gross Settlement (RTGS) — each transaction settles individually and irrevocably within business hours, eliminating counterparty risk.`,
-    };
-    if (amount >= 10_000) return {
-      primary: `WIRE selected because the ${amtFmt} transaction crosses the $10K BSA reporting threshold, requiring enhanced monitoring and a full correspondent bank audit trail.`,
-      secondary: `Fedwire's SWIFT-compatible messaging provides the traceability required for Bank Secrecy Act compliance and FinCEN transaction monitoring obligations.`,
-    };
-    return {
-      primary: `WIRE selected because the elevated risk score (${riskScore}/100) triggered risk-mitigation escalation. A complete correspondent bank audit trail and pre-settlement review window are required.`,
-      secondary: `Fedwire's irrevocable gross settlement protects the institution from credit risk while giving compliance teams a pre-settlement review window before funds clear.`,
-    };
+    if (amount >= 50_000) return { primary: `WIRE selected: mandatory for high-value transactions ≥$50K.`, secondary: "" };
+    if (amount >= 10_000) return { primary: `WIRE selected: crosses BSA reporting threshold, requiring institutional settlement.`, secondary: "" };
+    return { primary: `WIRE selected: elevated risk score requires pre-settlement review.`, secondary: "" };
   }
 
   if (rail === "RTP") {
-    if (priority === "URGENT" && riskScore < 55) return {
-      primary: `RTP selected because the transaction requires instant settlement and the risk profile (score: ${riskScore}/100) is within the Real-Time Payments acceptance policy threshold.`,
-      secondary: `The Clearing House RTP network provides sub-30-second irrevocable fund availability, operating continuously across all TCH member institutions with no cutoff windows.`,
-    };
-    return {
-      primary: `RTP selected to minimize settlement exposure window for this URGENT transaction. Despite an elevated risk score (${riskScore}/100), instant finality reduces counterparty credit risk versus deferred rails.`,
-      secondary: `Enhanced behavioral monitoring is applied throughout the real-time settlement cycle. TCH RTP's Request for Payment capability supports full transaction lifecycle audit tracing.`,
-    };
+    if (priority === "URGENT" && riskScore < 55) return { primary: `RTP selected: urgent priority, low risk, requires instant finality.`, secondary: "" };
+    return { primary: `RTP selected: urgent priority overrides elevated risk; instant finality reduces exposure.`, secondary: "" };
   }
 
   // ACH
-  if (priority === "BATCH") return {
-    primary: `ACH selected because BATCH processing mode is active. NACHA-compliant batch settlement provides the lowest per-transaction cost for non-urgent bulk payment files.`,
-    secondary: `NACHA Operating Rules govern ACH batch submission windows. T+1 settlement is appropriate for payroll, recurring billing, and bulk disbursements where immediate finality is not required.`,
-  };
-  return {
-    primary: `ACH selected because the ${amtFmt} transaction is below the WIRE escalation threshold and does not require immediate settlement. A risk score of ${riskScore}/100 qualifies for cost-optimal ACH routing.`,
-    secondary: `NACHA's Automated Clearing House processes transactions in batch windows with proven domestic reliability. At ${RAIL_CONFIG["ACH"].flatFeeDisplay} per item, ACH is the lowest cost path for standard-priority payments.`,
-  };
+  if (priority === "BATCH") return { primary: `ACH selected: batch processing, cost-optimal bulk settlement path.`, secondary: "" };
+  return { primary: `ACH selected: low risk, standard priority, cost-optimal settlement path.`, secondary: "" };
 }
 
 // ─── Decision Factors Generator ───────────────────────────────────────────────

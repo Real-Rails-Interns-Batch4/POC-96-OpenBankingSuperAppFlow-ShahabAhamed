@@ -2,27 +2,15 @@
 
 import { useMemo } from "react";
 import {
-  ArrowRight,
   Building2,
-  CheckCircle2,
-  Clock,
-  DollarSign,
   GitBranch,
-  Scale,
-  Shield,
-  ShieldCheck,
-  TriangleAlert,
-  Zap,
-  Activity,
   Lock,
   RefreshCw,
-  TrendingUp,
 } from "lucide-react";
 
 import {
   Rail,
   Priority,
-  RailConfig,
   LevelLabel,
   RAIL_CONFIG,
   RAIL_STYLES,
@@ -54,15 +42,6 @@ export interface RailSimResult {
   factors:           string[];
 }
 
-// ─── Confidence helpers ───────────────────────────────────────────────────────
-
-function confidenceMeta(pct: number): { label: string; color: string } {
-  if (pct >= 95) return { label: "HIGH",     color: "#34D399" };
-  if (pct >= 80) return { label: "STRONG",   color: "#22D3EE" };
-  if (pct >= 60) return { label: "MODERATE", color: "#FCD34D" };
-  return              { label: "LOW",       color: "#F87171" };
-}
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SectionDivider({ label }: { label: string }) {
@@ -92,46 +71,7 @@ function LevelBadge({ level }: { level: LevelLabel }) {
   );
 }
 
-function KpiCard({
-  icon: Icon,
-  label,
-  value,
-  subtext,
-  valueColor,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  subtext: string;
-  valueColor?: string;
-}) {
-  return (
-    <div
-      className="p-3 rounded-lg flex flex-col gap-1"
-      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
-    >
-      <div className="flex items-center gap-1.5 mb-0.5">
-        <Icon className="w-3 h-3 text-slate-600" />
-        <span className="section-label" style={{ fontSize: "9px" }}>{label}</span>
-      </div>
-      <p
-        className="font-mono-data text-[14px] font-bold tabular-nums leading-none"
-        style={{ color: valueColor ?? "#CBD5E1" }}
-      >
-        {value}
-      </p>
-      <p className="font-mono-data text-[9px] text-slate-600 leading-tight">{subtext}</p>
-    </div>
-  );
-}
 
-function Tooltip({ text, children }: { text: string; children: React.ReactNode }) {
-  return (
-    <span title={text} className="cursor-help">
-      {children}
-    </span>
-  );
-}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -146,7 +86,6 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
   const viewRail = result.rail;
   const config = RAIL_CONFIG[viewRail];
   const recStyle = RAIL_STYLES[viewRail];
-  const conf = confidenceMeta(result.confidence);
 
   const narrative = useMemo(() => generateNarrative(viewRail, input), [viewRail, input]);
   const consent = useMemo(() => getConsentInfo(input.institution ?? "Chase"), [input.institution]);
@@ -155,7 +94,7 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
     <div
       className="rounded-xl overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, #070F1D 0%, #0A1220 100%)",
+        background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
         border: "1px solid rgba(255,255,255,0.05)",
         boxShadow: "var(--shadow-card)",
       }}
@@ -183,22 +122,13 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
               Rail Governance
             </p>
             <h3 className="text-white font-semibold text-sm leading-none mt-0.5">
-              Rail Intelligence Engine
+              Rail Governance & Settlement Profile
             </h3>
           </div>
         </div>
 
-        {/* Active rail + confidence */}
+        {/* Active rail */}
         <div className="hidden sm:flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="font-mono-data text-[9px] text-slate-500">Routing Confidence</span>
-            <span
-              className="font-mono-data text-[10px] font-bold tabular-nums"
-              style={{ color: conf.color }}
-            >
-              {result.confidence.toFixed(1)}%
-            </span>
-          </div>
           <div
             className="flex items-center gap-1.5 px-2 py-1 rounded-md"
             style={{ background: recStyle.bg, border: `1px solid ${recStyle.border}` }}
@@ -219,7 +149,7 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
           {/* Operator row */}
           <div
             className="flex items-center justify-between px-3 py-2 rounded-lg mb-3"
-            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}
+            style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}
           >
             <div className="flex items-center gap-2.5">
               <div
@@ -238,35 +168,47 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
             </div>
           </div>
 
-          {/* 5-cell metadata grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-2">
+          {/* Metadata grid */}
+          <div className="grid grid-cols-2 gap-2 mb-2">
             {[
               { label: "Settlement", value: config.settlementTime, color: recStyle.color },
-              { label: "Availability", value: config.availability },
+              { label: "Cost", level: config.cost },
             ].map((c) => (
               <div
                 key={c.label}
-                className="flex flex-col gap-1 px-3 py-2.5 rounded-lg"
+                className="flex flex-col gap-1.5 px-4 py-3 rounded-lg"
                 style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}
               >
-                <span className="section-label" style={{ fontSize: "9px" }}>{c.label}</span>
-                <span className="font-mono-data text-[10px] font-semibold leading-tight" style={{ color: c.color ?? "#CBD5E1" }}>
-                  {c.value}
-                </span>
+                <span className="section-label" style={{ fontSize: "10px", color: "#E2E8F0" }}>{c.label}</span>
+                {c.value ? (
+                  <span className="font-mono-data text-[12px] font-bold leading-tight" style={{ color: c.color ?? "#F8FAFC" }}>
+                    {c.value}
+                  </span>
+                ) : (
+                  <LevelBadge level={c.level as LevelLabel} />
+                )}
               </div>
             ))}
+          </div>
+          <div className="grid grid-cols-3 gap-2 mb-2">
             {[
-              { label: "Cost", level: config.cost },
+              { label: "Availability", value: config.availability },
               { label: "Risk Profile", level: config.riskLevel },
               { label: "Compliance", level: config.complianceImpact },
             ].map((c) => (
               <div
                 key={c.label}
-                className="flex flex-col gap-1.5 px-3 py-2.5 rounded-lg"
-                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}
+                className="flex flex-col gap-1 px-3 py-2 rounded-lg"
+                style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.03)" }}
               >
-                <span className="section-label" style={{ fontSize: "9px" }}>{c.label}</span>
-                <LevelBadge level={c.level} />
+                <span className="section-label" style={{ fontSize: "8px" }}>{c.label}</span>
+                {c.value ? (
+                  <span className="font-mono-data text-[9px] font-semibold leading-tight" style={{ color: "#CBD5E1" }}>
+                    {c.value}
+                  </span>
+                ) : (
+                  <LevelBadge level={c.level as LevelLabel} />
+                )}
               </div>
             ))}
           </div>
@@ -275,8 +217,10 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
         {/* ═══════════════════════════════════════════════════════════════════
             SELECTION RATIONALE
         ═══════════════════════════════════════════════════════════════════ */}
-        <SectionDivider label="Selection Rationale" />
-        <div>
+        <div className="mt-4 mb-2">
+          <p className="font-mono-data uppercase tracking-widest text-[10px] font-bold text-slate-400 mb-2">
+            SELECTION RATIONALE
+          </p>
           <div
             className="px-4 py-3 rounded-lg mb-2"
             style={{
@@ -313,17 +257,16 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-px" style={{ background: "rgba(255,255,255,0.03)" }}>
             {[
+              { label: "Connected Institution", value: input.institution || "Chase", color: "#FCD34D" },
               { label: "Consent Provider", value: consent.provider,    color: "#22D3EE" },
               { label: "Consent Status",   value: consent.status,      color: consent.status === "Verified" ? "#34D399" : "#FCD34D" },
               { label: "Access Scope",     value: consent.scope,       color: "#94A3B8" },
-              { label: "Token Status",     value: consent.tokenStatus, color: consent.tokenStatus === "Active" ? "#34D399" : "#FCD34D" },
-              { label: "API Version",      value: consent.apiVersion,  color: "#94A3B8" },
-              { label: "Last Refresh",     value: consent.lastRefresh, color: "#94A3B8" },
+              { label: "Data Freshness",   value: "Real-time (<1s)",   color: "#22D3EE" },
             ].map((row) => (
               <div
                 key={row.label}
                 className="px-3 py-1.5 flex flex-col gap-0.5"
-                style={{ background: "#070F1D" }}
+                style={{ background: "#081120" }}
               >
                 <span className="section-label" style={{ fontSize: "8px" }}>{row.label}</span>
                 <div className="flex items-center gap-1.5">
@@ -370,33 +313,35 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
             return (
               <div
                 key={r}
-                className="px-2.5 py-2 rounded-lg flex flex-col justify-center"
+                className="px-3 py-2.5 rounded-xl transition-all duration-300 relative"
                 style={{
-                  background: isRec ? rs.dimBg : "rgba(255,255,255,0.02)",
-                  border: `1px solid ${isRec ? rs.border : "rgba(255,255,255,0.05)"}`,
+                  background: isRec ? rs.dimBg : "rgba(255,255,255,0.015)",
+                  border: `1px solid ${isRec ? rs.border : "rgba(255,255,255,0.04)"}`,
+                  boxShadow: isRec ? `0 0 20px ${rs.bg}, inset 0 0 10px ${rs.bg}` : "none",
+                  transform: isRec ? "translateY(-2px)" : "none",
                 }}
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3 h-[18px]">
                   <span
-                    className="font-mono-data text-[11px] font-bold tracking-widest"
+                    className="font-mono-data text-[12px] font-bold tracking-widest"
                     style={{ color: rs.color }}
                   >
                     {r}
                   </span>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex flex-col gap-1">
-                    <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Settlement</span>
-                    <span className="font-mono-data text-[10px] font-semibold text-slate-300">
-                      {rc.settlementWindow}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Cost</span>
-                    <span className="font-mono-data text-[10px] font-semibold text-slate-300">
-                      {rc.flatFeeDisplay}
-                    </span>
-                  </div>
+                <div className="flex flex-col">
+                  {[
+                    { l: "Settlement", v: rc.settlementWindow },
+                    { l: "Cost", v: rc.flatFeeDisplay },
+                    { l: "Compliance", v: rc.complianceImpact },
+                    { l: "Risk", v: rc.riskLevel },
+                    { l: "Availability", v: rc.availability },
+                  ].map(x => (
+                    <div key={x.l} className="flex justify-between items-center border-b border-white/5 py-1.5 last:border-0 h-[26px]">
+                      <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">{x.l}</span>
+                      <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">{x.v}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             );

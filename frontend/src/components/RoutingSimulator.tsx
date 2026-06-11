@@ -10,103 +10,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { RAIL_CONFIG } from "@/lib/railConfig";
+import { computeRouting, SimInput, SimResult, Rail, Priority, RiskLevel } from "@/lib/routingEngine";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-export type Rail = "ACH" | "WIRE" | "RTP";
-export type Priority = "STANDARD" | "URGENT" | "BATCH";
-export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
-
-export interface SimInput {
-  amount: number;
-  institution: string;
-  riskScore: number;
-  priority: Priority;
-}
-
-export interface SimResult {
-  rail: Rail;
-  confidence: number;
-  reasoning: string;
-  settlementTime: string;
-  riskAssessment: RiskLevel;
-  costEstimate: string;
-  reviewProbability: string;
-  complianceRisk: string;
-  factors: string[];
-}
-
-// ─── Routing engine (pure deterministic function) ────────────────────────────
-
-function computeRouting(input: SimInput): SimResult {
-  const { amount, riskScore, priority } = input;
-  let rail: Rail;
-  let rawConfidence: number;
-  let reasoning: string;
-  let factors: string[];
-
-  if (amount >= 50000) {
-    rail = "WIRE";
-    rawConfidence = 98.5 + (riskScore > 50 ? 1.2 : 0) - (amount % 100 === 0 ? 0 : 0.4);
-    reasoning = `High-value wire mandatory for transactions ≥$50K. Federal Regulation J and UCC Article 4A require WIRE for institutional-grade settlement. Same-day finality with full SWIFT audit trail.`;
-    factors = ["Amount ≥$50K — WIRE mandatory", "Federal Reg J compliance", "SWIFT correspondent routing"];
-  } else if (amount >= 10000) {
-    rail = "WIRE";
-    rawConfidence = 92.4 + (riskScore / 10) - (priority === "URGENT" ? 1.5 : 0);
-    reasoning = `Transaction value $${amount.toLocaleString()} exceeds $10K threshold, triggering WIRE routing for institutional settlement guarantees, BSA compliance monitoring, and same-day finality.`;
-    factors = ["Amount >$10K threshold crossed", "BSA/AML monitoring required", "Same-day institutional settlement"];
-  } else if (priority === "URGENT" && riskScore < 55) {
-    rail = "RTP";
-    rawConfidence = 95.8 - (riskScore / 15) + (amount < 1000 ? 2.1 : 0);
-    reasoning = `URGENT priority with acceptable risk score (${riskScore}) qualifies for Real-Time Payment rail. FedNow guarantees sub-30 second settlement finality with 24/7 availability.`;
-    factors = [`URGENT priority flag`, `Risk score ${riskScore} — within RTP policy`, "FedNow sub-30s finality"];
-  } else if (riskScore >= 70) {
-    rail = "WIRE";
-    rawConfidence = 85.0 + (riskScore / 5) - (amount < 500 ? 3.2 : 0);
-    reasoning = `Elevated risk score (${riskScore}) triggers risk-mitigation escalation to WIRE. Full correspondent bank audit trail enables compliance review and manual intervention before settlement.`;
-    factors = [`Risk score ${riskScore} exceeds threshold`, "WIRE provides complete audit trail", "Compliance review window available"];
-  } else if (priority === "BATCH") {
-    rail = "ACH";
-    rawConfidence = 98.9 + (amount % 2 === 0 ? 0.3 : -0.2);
-    reasoning = `BATCH processing mode optimally routes via ACH. NACHA-compliant batch settlement at sub-$0.50 per-transaction cost. T+1 finality suitable for non-urgent bulk processing.`;
-    factors = ["BATCH mode — ACH optimal", "NACHA T+1 settlement", "Lowest per-transaction cost"];
-  } else if (priority === "URGENT" && riskScore >= 55) {
-    rail = "RTP";
-    rawConfidence = 72.4 - ((riskScore - 55) / 3) + (amount < 1000 ? 1.5 : -1.5);
-    reasoning = `URGENT priority overrides elevated risk (${riskScore}). RTP selected to minimize exposure window. Enhanced behavioral monitoring applied throughout the real-time settlement cycle.`;
-    factors = ["URGENT priority override", `Risk score ${riskScore} — monitoring active`, "Short exposure window via RTP"];
-  } else {
-    rail = "ACH";
-    rawConfidence = 91.2 + (50 - riskScore) / 10 + (amount < 2000 ? 2.3 : -1.1);
-    reasoning = `Standard transaction with low-moderate risk (${riskScore}) routes optimally via ACH. Cost-efficient NACHA batch settlement with proven reliability across domestic payment infrastructure.`;
-    factors = ["Standard priority — ACH default", `Risk score ${riskScore} — within ACH policy`, "Cost-optimal routing"];
-  }
-
-  const confidence = Math.min(99.9, Math.max(0.1, rawConfidence));
-
-  const riskAssessment: RiskLevel =
-    riskScore < 35 ? "LOW" : riskScore < 65 ? "MEDIUM" : "HIGH";
-
-  const settlementTime =
-    rail === "RTP" ? "< 30 seconds" : rail === "WIRE" ? "Same Business Day" : "T+1 Business Day";
-
-  const costEstimate = RAIL_CONFIG[rail].flatFeeRange;
-
-  const reviewProbability = riskScore > 80 ? "High (Manual Review)" : riskScore > 50 ? "Moderate" : "Low (Auto-Clear)";
-  const complianceRisk = amount > 10000 ? "Elevated (BSA/AML)" : "Standard";
-
-  return {
-    rail,
-    confidence,
-    reasoning,
-    settlementTime,
-    riskAssessment,
-    costEstimate,
-    reviewProbability,
-    complianceRisk,
-    factors,
-  };
-}
+// Re-export for compatibility with other components
+export type { Rail, Priority, RiskLevel, SimInput, SimResult };
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -184,8 +91,8 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
             <Brain className="w-5 h-5 text-purple-400" />
           </div>
           <div>
-            <p className="section-label mb-0.5 text-purple-400/70">
-              AI-Powered · Live Computation
+            <p className="font-mono-data text-[9px] uppercase tracking-widest mb-0.5 text-purple-400/70">
+              SIMULATION MODE · GENERATED FROM SYNTHETIC DATASET
             </p>
             <h3 className="text-white font-semibold text-base leading-none">
               Payment Routing Simulator
@@ -209,13 +116,13 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
         style={{ borderColor: "rgba(255,255,255,0.04)" }}
       >
         {/* ── LEFT: Inputs ── */}
-        <div className="p-4 flex flex-col h-full justify-between">
+        <div className="p-5 space-y-4 flex flex-col h-full">
           <p className="section-label">Simulation Parameters</p>
 
           {/* Amount */}
-          <div>
-            <label className="section-label mb-2 block">Payment Amount</label>
-            <div className="relative mb-2">
+          <div className="flex flex-col gap-1.5">
+            <label className="section-label block">Payment Amount</label>
+            <div className="relative mb-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono-data text-sm text-slate-500">
                 $
               </span>
@@ -235,7 +142,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               />
             </div>
             {/* Quick amounts */}
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               {QUICK_AMOUNTS.map((amt) => (
                 <button
                   key={amt}
@@ -261,8 +168,8 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
           </div>
 
           {/* Institution */}
-          <div>
-            <label className="section-label mb-2 block">Institution</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="section-label block">Institution</label>
             <select
               value={input.institution}
               onChange={(e) =>
@@ -283,8 +190,8 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
           </div>
 
           {/* Risk Score */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-col gap-1.5 mt-1">
+            <div className="flex items-center justify-between">
               <label className="section-label">Risk Score</label>
               <span
                 className="font-mono-data text-xs font-semibold tabular-nums"
@@ -301,7 +208,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               onChange={(e) =>
                 setInput((p) => ({ ...p, riskScore: Number(e.target.value) }))
               }
-              className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer mt-1"
               style={{
                 accentColor:
                   input.riskScore < 35
@@ -312,24 +219,18 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               }}
             />
             <div className="flex justify-between mt-1">
-              <span className="font-mono-data text-[9px] text-emerald-600/70">
-                LOW
-              </span>
-              <span className="font-mono-data text-[9px] text-amber-600/70">
-                MEDIUM
-              </span>
-              <span className="font-mono-data text-[9px] text-red-600/70">
-                HIGH
-              </span>
+              <span className={`font-mono-data text-[9px] font-bold tracking-widest ${input.riskScore < 35 ? "text-emerald-400" : "text-emerald-900"}`}>LOW</span>
+              <span className={`font-mono-data text-[9px] font-bold tracking-widest ${input.riskScore >= 35 && input.riskScore < 65 ? "text-amber-400" : "text-amber-900"}`}>MEDIUM</span>
+              <span className={`font-mono-data text-[9px] font-bold tracking-widest ${input.riskScore >= 65 ? "text-red-400" : "text-red-900"}`}>HIGH</span>
             </div>
           </div>
 
           {/* Priority */}
-          <div>
-            <label className="section-label mb-2 block">
+          <div className="flex flex-col gap-1.5">
+            <label className="section-label block">
               Transaction Priority
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {(["STANDARD", "URGENT", "BATCH"] as Priority[]).map((p) => (
                 <button
                   key={p}
@@ -353,33 +254,88 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               ))}
             </div>
           </div>
+
+          {/* ── Simulation Impact Preview ── */}
+          <div className="mt-auto pt-6">
+            <p className="font-mono-data uppercase tracking-widest text-[10px] font-bold text-slate-400 mb-2">
+              SIMULATION IMPACT PREVIEW
+            </p>
+            <div
+              className="p-3.5 rounded-xl flex flex-col gap-2.5"
+              style={{
+                background: "rgba(255,255,255,0.02)",
+                border: "1px solid rgba(255,255,255,0.05)",
+                boxShadow: "inset 0 0 20px rgba(0,0,0,0.2)",
+              }}
+            >
+              <div className="flex justify-between items-center">
+                <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Settlement Time</span>
+                <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">
+                  {result.settlementTime.replace("T+1", "1")}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Estimated Cost</span>
+                <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">{result.costEstimate}</span>
+              </div>
+              
+              <div className="h-px w-full my-0.5" style={{ background: "rgba(255,255,255,0.04)" }} />
+              
+              <div className="flex justify-between items-center">
+                <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Review Probability</span>
+                <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">
+                  {result.reviewProbability.replace(" (Auto-Clear)", "").replace(" (Manual Review)", "")}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Compliance Status</span>
+                <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">
+                  {result.complianceRisk === "Standard" ? "Approved" : result.complianceRisk}
+                </span>
+              </div>
+              
+              <div className="h-px w-full my-0.5" style={{ background: "rgba(255,255,255,0.04)" }} />
+              
+              <div className="flex justify-between items-center">
+                <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Recommended Rail</span>
+                <span className="font-mono-data text-[11px] font-bold text-right" style={{ color: railStyle.color }}>{result.rail}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Success Rate</span>
+                <span className="font-mono-data text-[10px] font-semibold text-emerald-400 text-right">
+                  {RAIL_CONFIG[result.rail].successRate.toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ── RIGHT: Output ── */}
-        <div className="p-4 flex flex-col h-full justify-between">
+        <div className="p-5 flex flex-col h-full justify-between">
           <div>
             <p className="section-label mb-2">Routing Recommendation</p>
 
           {/* Rail hero */}
           <div
-            className="p-3 rounded-xl mb-3 transition-all duration-300"
+            className="p-3.5 rounded-xl mb-3 transition-all duration-300 relative overflow-hidden"
             style={{
               background: railStyle.bg,
               border: `1px solid ${railStyle.border}`,
+              boxShadow: `0 0 24px ${railStyle.bg}`,
             }}
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="section-label">Recommended Rail</span>
-              <div className="flex items-center gap-1.5">
-                <div
-                  className="w-1.5 h-1.5 rounded-full animate-pulse"
-                  style={{ background: railStyle.color }}
-                />
+            {/* Glow effect */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ background: `radial-gradient(circle at 50% -20%, ${railStyle.color}20, transparent 70%)` }} />
+            
+            <div className="flex items-center justify-between mb-2 relative">
+              <span className="section-label text-slate-300">Recommended Rail</span>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md" style={{ background: `${railStyle.color}15`, border: `1px solid ${railStyle.color}30` }}>
+                <CheckCircle2 className="w-3 h-3" style={{ color: railStyle.color }} />
                 <span
-                  className="font-mono-data text-[9px] uppercase tracking-widest"
+                  className="font-mono-data text-[9px] font-bold uppercase tracking-widest"
                   style={{ color: railStyle.color }}
                 >
-                  COMPUTED
+                  RECOMMENDED
                 </span>
               </div>
             </div>
@@ -396,10 +352,10 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
             </p>
             {/* Confidence bar */}
             <div>
-              <div className="flex justify-between mb-1.5">
-                <span className="section-label">Model Confidence</span>
+              <div className="flex justify-between items-baseline mb-1.5">
+                <span className="section-label text-slate-400">Model Confidence</span>
                 <span
-                  className="font-mono-data text-[10px] font-semibold tabular-nums"
+                  className="font-mono-data text-[11px] font-bold tabular-nums"
                   style={{ color: railStyle.color }}
                 >
                   {result.confidence.toFixed(1)}%
@@ -499,9 +455,38 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
                 AI Reasoning
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              {result.reasoning}
-            </p>
+            <p className="text-[12px] text-white font-semibold mb-2">Routing Decision Summary</p>
+            <ul className="space-y-1">
+              {result.factors.map((f, i) => (
+                 <li key={i} className="flex items-start gap-1.5 text-[11px] text-slate-300 leading-relaxed">
+                   <div className="w-1 h-1 rounded-full bg-purple-400/60 mt-1.5 flex-shrink-0" />
+                   {f}
+                 </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            {/* Decision Inputs */}
+            <div className="p-3.5 rounded-lg flex flex-col h-full" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <p className="section-label mb-3 text-slate-300">Decision Inputs</p>
+              <div className="space-y-2 flex-1">
+                <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500">Amount</span><span className="text-[10px] font-mono-data text-white">${input.amount.toLocaleString()}</span></div>
+                <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500">Risk Score</span><span className="text-[10px] font-mono-data" style={{ color: riskColor }}>{input.riskScore}</span></div>
+                <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500">Priority</span><span className="text-[10px] font-mono-data text-white">{input.priority}</span></div>
+                <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500">Institution</span><span className="text-[10px] font-mono-data text-white truncate max-w-[60px]" title={input.institution}>{input.institution}</span></div>
+              </div>
+            </div>
+
+            {/* Why This Matters */}
+            <div className="p-3.5 rounded-lg flex flex-col h-full" style={{ background: "rgba(34,211,238,0.04)", border: "1px solid rgba(34,211,238,0.15)" }}>
+              <p className="section-label mb-3 text-cyan-400">Why This Matters</p>
+              <ul className="space-y-1.5 flex-1">
+                <li className="flex items-start gap-1.5 text-[10px] text-slate-300"><div className="w-1 h-1 rounded-full bg-cyan-400/60 mt-1.5 flex-shrink-0" /> Lowest projected processing cost</li>
+                <li className="flex items-start gap-1.5 text-[10px] text-slate-300"><div className="w-1 h-1 rounded-full bg-cyan-400/60 mt-1.5 flex-shrink-0" /> Suitable settlement timeframe</li>
+                <li className="flex items-start gap-1.5 text-[10px] text-slate-300"><div className="w-1 h-1 rounded-full bg-cyan-400/60 mt-1.5 flex-shrink-0" /> Strong compliance profile</li>
+              </ul>
+            </div>
           </div>
 
           </div>

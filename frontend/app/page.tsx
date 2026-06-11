@@ -11,13 +11,14 @@ import LiveClock           from "@/components/LiveClock";
 
 // ─── New Phase-2 & 3 components ───────────────────────────────────────────────
 import AIInsightsEngine      from "@/components/AIInsightsEngine";
-import BackendHealthMonitor  from "@/components/BackendHealthMonitor";
 import TransactionDrawer     from "@/components/TransactionDrawer";
 import LiveOperationsStream  from "@/components/LiveOperationsStream";
 import RoutingSimulator      from "@/components/RoutingSimulator";
 import RailIntelligenceEngine from "@/components/RailIntelligenceEngine";
 import OpenBankingOverview   from "@/components/OpenBankingOverview";
-import type { SimResult, SimInput } from "@/components/RoutingSimulator";
+import type { SimResult, SimInput } from "@/lib/routingEngine";
+import { computeRouting } from "@/lib/routingEngine";
+import { calculateMetrics } from "@/lib/metrics";
 
 // ─── APIs ─────────────────────────────────────────────────────────────────────
 import { fetchTransactions, fetchSourceStatus } from "@/lib/api";
@@ -30,7 +31,6 @@ import {
   BarChart3,
   Bell,
   Brain,
-  CheckCircle2,
   Clock,
   CreditCard,
   Download,
@@ -50,74 +50,29 @@ import {
 // MOCK FALLBACK DATA
 // =============================================================================
 
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: "mock-1",
-    user: "alice.morgan",
-    bank: "Chase",
-    amount: 4200.0,
-    rail: "ACH",
-    risk_score: 22,
-    risk_level: "LOW",
-    status: "COMPLETED",
-    timestamp: new Date().toISOString(),
-  },
-  {
-    id: "mock-2",
-    user: "bob.hayes",
-    bank: "Wells Fargo",
-    amount: 18750.5,
-    rail: "WIRE",
-    risk_score: 71,
-    risk_level: "HIGH",
-    status: "PENDING",
-    timestamp: new Date().toISOString(),
-  },
-  {
-    id: "mock-3",
-    user: "carol.chen",
-    bank: "Bank of America",
-    amount: 950.25,
-    rail: "RTP",
-    risk_score: 45,
-    risk_level: "MEDIUM",
-    status: "PROCESSING",
-    timestamp: new Date().toISOString(),
-  },
-  {
-    id: "mock-4",
-    user: "david.osei",
-    bank: "Citibank",
-    amount: 2100.0,
-    rail: "ACH",
-    risk_score: 15,
-    risk_level: "LOW",
-    status: "COMPLETED",
-    timestamp: new Date().toISOString(),
-  },
-  {
-    id: "mock-5",
-    user: "emma.silva",
-    bank: "Goldman Sachs",
-    amount: 7300.75,
-    rail: "WIRE",
-    risk_score: 58,
-    risk_level: "MEDIUM",
-    status: "COMPLETED",
-    timestamp: new Date().toISOString(),
-  },
-  {
-    id: "mock-6",
-    user: "frank.zhou",
-    bank: "Chase",
-    amount: 320.0,
-    rail: "RTP",
-    risk_score: 82,
-    risk_level: "HIGH",
-    status: "PENDING",
-    timestamp: new Date().toISOString(),
-  },
-];
+const MOCK_TRANSACTIONS: Transaction[] = Array.from({ length: 50 }).map((_, i) => {
+  const banks = ["Chase", "Wells Fargo", "Bank of America", "Citibank", "Goldman Sachs"];
+  const names = ["Olivia Carter", "James Wilson", "Michael Reed", "Emma Parker", "Daniel Brooks"];
+  const amount = 100 + (i * 43) % 60000;
+  const riskScore = i === 7 || i === 23 ? 85 : i % 5 === 0 ? 45 : 12 + (i % 20);
+  const priority = i % 4 === 0 ? "URGENT" : i % 10 === 0 ? "BATCH" : "STANDARD";
+  
+  const routing = computeRouting({ amount, riskScore, priority, institution: banks[i % banks.length] });
+
+  const status = routing.riskAssessment === "HIGH" && i % 2 === 0 ? "PENDING" : "COMPLETED";
+
+  return {
+    id: `mock-${100 + i}`,
+    user: names[i % names.length],
+    bank: banks[i % banks.length],
+    amount,
+    rail: routing.rail,
+    risk_score: riskScore,
+    risk_level: routing.riskAssessment,
+    status,
+    timestamp: new Date(Date.now() - i * 600000).toISOString(),
+  };
+});
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -145,7 +100,7 @@ export interface LiveEvent {
   id: string;
   timestamp: string;
   eventId: string;
-  severity: "HIGH" | "MEDIUM" | "INFO";
+  severity: string;
   type: string;
   message: string;
   isNew?: boolean;
@@ -167,7 +122,6 @@ export default function DashboardPage() {
   
   // Phase 4 States
   const [telemetryHistory, setTelemetryHistory] = useState<TelemetrySnapshot[]>([]);
-  const [operationsLog, setOperationsLog] = useState<LiveEvent[]>([]);
 
   // Tab State
   const [activeTab, setActiveTab] = useState<TabId>("OVERVIEW");
@@ -184,8 +138,6 @@ export default function DashboardPage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
   // Derived Source State
   let sourceState: "LIVE_API" | "MOCK_MODE" | "OFFLINE_FALLBACK" = "MOCK_MODE";
   if (apiStatus === "OFFLINE") sourceState = "OFFLINE_FALLBACK";
@@ -195,20 +147,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (prevSourceStateRef.current !== sourceState && !loading) {
-      if (sourceState === "MOCK_MODE" || sourceState === "OFFLINE_FALLBACK") {
-        setToastMessage("Backend unavailable. Switching to simulation mode.");
-      } else if (sourceState === "LIVE_API") {
-        setToastMessage("Simulation mode ended. Live banking services restored.");
-      }
       prevSourceStateRef.current = sourceState;
-      
-      const timer = setTimeout(() => setToastMessage(null), 5000);
-      return () => clearTimeout(timer);
     }
   }, [sourceState, loading]);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const eventCycleRef = useRef(0);
+  const hasNotifiedOutageRef = useRef(false);
   const [highlightedTxnId, setHighlightedTxnId] = useState<string | null>(null);
 
   // ---------------------------------------------------------------------------
@@ -351,13 +296,6 @@ export default function DashboardPage() {
             }
           }
 
-          if (newEvents.length > 0) {
-            setOperationsLog(logPrev => {
-              const cleared = logPrev.map(e => ({ ...e, isNew: false }));
-              return [...newEvents, ...cleared].slice(0, 50);
-            });
-          }
-
           return data.transactions;
         });
 
@@ -380,6 +318,10 @@ export default function DashboardPage() {
         });
 
         setDataMode("LIVE");
+        if (hasNotifiedOutageRef.current) {
+          addNotification("Backend API connection restored. Operating in LIVE mode.", "INFO");
+          hasNotifiedOutageRef.current = false;
+        }
         return;
       }
       // Fallback
@@ -389,6 +331,10 @@ export default function DashboardPage() {
       });
       setDataMode("MOCK");
     } catch {
+      if (!hasNotifiedOutageRef.current) {
+        addNotification("Backend API offline. Operating in resilient synthetic mode.", "HIGH");
+        hasNotifiedOutageRef.current = true;
+      }
       setApiStatus("OFFLINE");
       setApiLatency(0);
       setRawTransactions(prev => {
@@ -466,111 +412,47 @@ export default function DashboardPage() {
     avgSettlementLabel,
     threatLevel,
     railCounts,
-    railPercentages
+    railPercentages,
+    riskExposureScore,
+    completedCount,
+    pendingCount,
+    generatedOperationsLog
   } = useMemo(() => {
-    // Current state
-    const connectedBanks = new Set(transactions.map(t => t.bank)).size;
-    const totalAmount = transactions.reduce((acc, t) => acc + t.amount, 0);
-    const riskAlerts = transactions.filter(t => t.risk_level === "HIGH").length;
+    const metrics = calculateMetrics(transactions);
     
-    const completedCount = transactions.filter(t => t.status === "COMPLETED").length;
-    const totalTxns = Math.max(transactions.length, 1);
-    const successRateStr = ((completedCount / totalTxns) * 100).toFixed(1);
-
-    let totalHours = 0;
-    const rc: Record<string, number> = {};
-    transactions.forEach(t => {
-      rc[t.rail] = (rc[t.rail] || 0) + 1;
-      if (t.rail === "ACH") totalHours += 24;
-      else if (t.rail === "WIRE") totalHours += 2;
-    });
+    // Operations Feed calculation
+    const messages = [
+      (t: Transaction) => `Settlement Finalized | ${t.rail} | $${t.amount} | ${t.bank}`,
+      (t: Transaction) => `Risk Assessment Complete | Score ${t.risk_score} | ${t.rail} Eligible`,
+      (t: Transaction) => `OAuth Consent Verified | ${t.bank}`,
+      (t: Transaction) => `Rail Selection Complete | ${t.rail} Recommended`,
+      (t: Transaction) => `Transaction Approved | ${t.rail} Route`,
+      (t: Transaction) => `Settlement Finalized | ${t.rail} | $${t.amount} | ${t.bank}`
+    ];
+    const severities = ["SETTLED", "RISK", "SYNC", "ROUTED", "INFO", "SETTLED"];
     
-    // Exact rail percentages summing to 100%
-    let railSum = 0;
-    const railPercentages: Record<string, number> = {};
-    if (transactions.length > 0) {
-      ["ACH", "WIRE"].forEach(rail => {
-        const pct = Math.round(((rc[rail] || 0) / transactions.length) * 100);
-        railPercentages[rail] = pct;
-        railSum += pct;
+    const generatedOperationsLog = [...transactions]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 20)
+      .map((t, i) => {
+        const msgIdx = i % messages.length;
+        return {
+          id: `ev-${t.id}`,
+          timestamp: new Date(t.timestamp).toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+          eventId: `EVT-${1000 + i}`,
+          severity: severities[msgIdx],
+          type: "SYSTEM",
+          message: messages[msgIdx](t),
+          txnId: t.id
+        };
       });
-      railPercentages["RTP"] = Math.max(0, 100 - railSum);
-    } else {
-      railPercentages["ACH"] = 0;
-      railPercentages["WIRE"] = 0;
-      railPercentages["RTP"] = 0;
-    }
 
-    const avgHrs = totalHours / totalTxns;
-    const avgSettlementLabel = avgHrs < 1 ? "< 1 hr" : `${avgHrs.toFixed(1)} hrs`;
-
-    // Threat Level
-    const detectedAnomalies = riskAlerts;
-    const clearedAnomalies = transactions.filter(t => t.risk_level === "HIGH" && t.status === "COMPLETED").length;
-    const activeThreats = Math.max(0, detectedAnomalies - clearedAnomalies);
-
-    let threatLevel: "LOW" | "GUARDED" | "ELEVATED" | "CRITICAL" = "LOW";
-    if (activeThreats >= 8) threatLevel = "CRITICAL";
-    else if (activeThreats >= 4) threatLevel = "ELEVATED";
-    else if (activeThreats >= 1) threatLevel = "GUARDED";
-
-    return { connectedBanks, totalAmount, riskAlerts, clearedAnomalies, successRateStr, avgSettlementLabel, threatLevel, railCounts: rc, railPercentages };
+    return {
+      ...metrics,
+      generatedOperationsLog
+    };
   }, [transactions]);
 
-  const {
-    prevConnectedBanks,
-    prevTotalAmount,
-    prevRiskAlerts,
-    prevSuccessRateStr,
-    prevAvgSettlementHrs
-  } = useMemo(() => {
-    const prevConnectedBanks = new Set(previousTransactions.map(t => t.bank)).size;
-    const prevTotalAmount = previousTransactions.reduce((acc, t) => acc + t.amount, 0);
-    const prevRiskAlerts = previousTransactions.filter(t => t.risk_level === "HIGH").length;
-    
-    const completedCount = previousTransactions.filter(t => t.status === "COMPLETED").length;
-    const totalTxns = Math.max(previousTransactions.length, 1);
-    const prevSuccessRateStr = ((completedCount / totalTxns) * 100).toFixed(1);
-
-    let totalHours = 0;
-    previousTransactions.forEach(t => {
-      if (t.rail === "ACH") totalHours += 24;
-      else if (t.rail === "WIRE") totalHours += 2;
-    });
-    const prevAvgSettlementHrs = totalHours / totalTxns;
-
-    return { prevConnectedBanks, prevTotalAmount, prevRiskAlerts, prevSuccessRateStr, prevAvgSettlementHrs };
-  }, [previousTransactions]);
-
-  // Derived Trend values
-  const getTrend = (current: number, prev: number) => {
-    if (prev === 0) return { trend: "neutral" as const, text: "" };
-    const diff = current - prev;
-    if (diff > 0) return { trend: "up" as const, text: `↑ ${((diff / prev) * 100).toFixed(1)}%` };
-    if (diff < 0) return { trend: "down" as const, text: `↓ ${((Math.abs(diff) / prev) * 100).toFixed(1)}%` };
-    return { trend: "neutral" as const, text: "No change" };
-  };
-
-  const getSuccessTrend = (current: number, prev: number): { trend: "up" | "down"; text: string } => {
-    const diff = current - prev;
-    return {
-        trend: diff >= 0 ? "up" : "down" as const,
-        text: `${Math.abs(diff).toFixed(1)}% vs prev`
-    };
-  };
-
-  const amountTrend = getTrend(totalAmount, prevTotalAmount);
-  const riskTrend = getTrend(riskAlerts, prevRiskAlerts);
-  const successTrend = getSuccessTrend(Number(successRateStr), Number(prevSuccessRateStr));
-  
-  // Settlement trend: lower is better
-  let settlementTrend: "up" | "down" | "neutral" = "neutral";
-  let settlementText = "";
-  const currentAvgHrs = totalAmount > 0 ? (avgSettlementLabel === "< 1 hr" ? 0.5 : parseFloat(avgSettlementLabel)) : 0;
-  if (prevAvgSettlementHrs > 0) {
-    if (currentAvgHrs < prevAvgSettlementHrs) { settlementTrend = "up"; settlementText = `↓ improved`; }
-    else if (currentAvgHrs > prevAvgSettlementHrs) { settlementTrend = "down"; settlementText = `↑ slower`; }
-  }
 
 
   // ---------------------------------------------------------------------------
@@ -849,7 +731,7 @@ export default function DashboardPage() {
                 <SectionHeader label="Executive Summary" />
                 
                 {/* KPI Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-4">
                   {/* Row 1 */}
                   <KpiCard
                     title="Connected Institutions"
@@ -890,9 +772,9 @@ export default function DashboardPage() {
                   />
                   {/* Row 2 */}
                   <KpiCard
-                    title="Settlement Success"
+                    title="Settlement Completion"
                     value={`${successRateStr}%`}
-                    subValue={`${transactions.filter(t=>t.status==='COMPLETED').length} settled`}
+                    subValue={`${completedCount} finalized • ${pendingCount} pending`}
                     icon={Percent}
                     accentColor={Number(successRateStr) >= 70 ? "#34D399" : "#F59E0B"}
                     trend="neutral"
@@ -900,7 +782,7 @@ export default function DashboardPage() {
                   <KpiCard
                     title="Avg Settlement Time"
                     value={avgSettlementLabel}
-                    subValue="Weighted average"
+                    subValue="Across settled transactions"
                     icon={Timer}
                     accentColor="#A78BFA"
                     trend="neutral"
@@ -918,7 +800,7 @@ export default function DashboardPage() {
                     value={threatLevel}
                     subValue={Math.max(0, riskAlerts - clearedAnomalies) + " Active Threats"}
                     icon={ShieldAlert}
-                    accentColor={threatLevel === "CRITICAL" || threatLevel === "ELEVATED" ? "#EF4444" : threatLevel === "GUARDED" ? "#F59E0B" : "#10B981"}
+                    accentColor={threatLevel === "CRITICAL" || threatLevel === "ELEVATED" ? "#EF4444" : threatLevel === "MODERATE" ? "#F59E0B" : "#10B981"}
                     trend="neutral"
                     alert={threatLevel === "CRITICAL" || threatLevel === "ELEVATED"}
                   />
@@ -931,7 +813,22 @@ export default function DashboardPage() {
                   icon={Brain}
                   accentColor="#A78BFA"
                   accentBg="rgba(167,139,250,0.06)"
-                  accentBorder="rgba(167,139,250,0.15)"
+                  headerBadge={
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="font-mono-data text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded text-amber-500 bg-amber-500/10 border border-amber-500/20">
+                        Generated from Mock Data
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="relative flex items-center justify-center">
+                          <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                          <div className="absolute inset-0 w-1 h-1 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                        </div>
+                        <span className="text-[9px] font-mono-data text-slate-500">
+                          Last Analysis: Just now
+                        </span>
+                      </div>
+                    </div>
+                  }
                 >
                   <AIInsightsEngine transactions={transactions} previousTransactions={previousTransactions} />
                 </IntelligenceModule>
@@ -946,7 +843,7 @@ export default function DashboardPage() {
               {/* SECTION 3: Payment Orchestration */}
               <div>
                 <SectionHeader label="Payment Orchestration" />
-                <RailFlowEngine />
+                <RailFlowEngine activeRail={Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ACH"} />
               </div>
             </div>
           )}
@@ -978,18 +875,24 @@ export default function DashboardPage() {
                       status="Optimal"
                       load={railPercentages["ACH"]}
                       latency="24ms"
+                      successRate="99.2%"
+                      settlementTime="T+1"
                     />
                     <RailTelemetryRow
                       name="WIRE"
                       status="Optimal"
                       load={railPercentages["WIRE"]}
                       latency="8ms"
+                      successRate="99.8%"
+                      settlementTime="Same Day"
                     />
                     <RailTelemetryRow
                       name="RTP"
                       status={railCounts["RTP"] > 1 ? "Degraded" : "Optimal"}
                       load={railPercentages["RTP"]}
                       latency="94ms"
+                      successRate="98.7%"
+                      settlementTime="Instant"
                       context={railCounts["RTP"] > 1 ? "Latency above target threshold" : undefined}
                     />
                   </div>
@@ -1010,30 +913,54 @@ export default function DashboardPage() {
                       Threat Assessment
                     </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 flex-1">
-                    <div className="flex flex-col justify-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
-                      <p className="section-label mb-2">Transactions Analyzed</p>
-                      <p className="text-3xl font-bold text-white leading-none font-mono-data tracking-tight">
-                        {transactions.length}
-                      </p>
+                  <div className="flex-1 flex flex-col gap-3">
+                    {/* Risk Exposure Score */}
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-white/[0.02] border border-white/5">
+                       <div>
+                         <p className="section-label mb-1">Risk Exposure Score</p>
+                         <div className="flex items-baseline gap-1 mt-1">
+                           <p className="text-3xl font-bold leading-none font-mono-data tracking-tight" style={{ color: riskExposureScore <= 35 ? "#10B981" : riskExposureScore <= 65 ? "#F59E0B" : "#EF4444" }}>
+                             {riskExposureScore}
+                           </p>
+                           <p className="text-sm font-bold text-slate-500 leading-none font-mono-data tracking-tight">/100</p>
+                         </div>
+                       </div>
+                       <div className="text-right">
+                         <span 
+                           className="font-mono-data text-[10px] uppercase tracking-widest px-2 py-1 rounded-md border"
+                           style={{ 
+                             color: riskExposureScore <= 35 ? "#34D399" : riskExposureScore <= 65 ? "#FCD34D" : "#F87171",
+                             background: riskExposureScore <= 35 ? "rgba(16,185,129,0.1)" : riskExposureScore <= 65 ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
+                             borderColor: riskExposureScore <= 35 ? "rgba(16,185,129,0.2)" : riskExposureScore <= 65 ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)"
+                           }}
+                         >
+                           {riskExposureScore <= 35 ? "LOW" : riskExposureScore <= 65 ? "MEDIUM" : "HIGH"}
+                         </span>
+                       </div>
                     </div>
-                    <div className="flex flex-col justify-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
-                      <p className="section-label mb-2">Detected Anomalies</p>
-                      <p className="text-3xl font-bold text-amber-500 leading-none font-mono-data tracking-tight">
-                        {riskAlerts}
-                      </p>
-                    </div>
-                    <div className="flex flex-col justify-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
-                      <p className="section-label mb-2">Cleared Anomalies</p>
-                      <p className="text-3xl font-bold text-emerald-500 leading-none font-mono-data tracking-tight">
-                        {clearedAnomalies}
-                      </p>
-                    </div>
-                    <div className="flex flex-col justify-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
-                      <p className="section-label mb-2">Active Threats</p>
-                      <p className="text-3xl font-bold text-red-500 leading-none font-mono-data tracking-tight">
-                        {Math.max(0, riskAlerts - clearedAnomalies)}
-                      </p>
+                    {/* Grid */}
+                    <div className="grid grid-cols-2 gap-3 flex-1">
+                      <div className="flex flex-col justify-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
+                        <p className="section-label mb-2">Investigations</p>
+                        <p className="text-2xl font-bold text-amber-500 leading-none font-mono-data tracking-tight">
+                          {Math.max(0, riskAlerts - clearedAnomalies)}
+                        </p>
+                      </div>
+                      <div className="flex flex-col justify-center p-4 rounded-lg bg-white/[0.02] border border-white/5">
+                        <p className="section-label mb-2">Resolved Alerts</p>
+                        <p className="text-2xl font-bold text-emerald-500 leading-none font-mono-data tracking-tight">
+                          {clearedAnomalies}
+                        </p>
+                      </div>
+                      <div className="col-span-2 flex items-center justify-between p-4 rounded-lg bg-white/[0.02] border border-white/5">
+                        <p className="section-label">Compliance Status</p>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                          <p className="text-sm font-bold text-emerald-500 uppercase tracking-widest font-mono-data">
+                            Compliant
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1050,7 +977,7 @@ export default function DashboardPage() {
                   <SectionHeader label="Operational Intelligence Feed" />
                   <div className="flex-1 min-h-0">
                     <LiveOperationsStream 
-                      events={operationsLog} 
+                      events={generatedOperationsLog} 
                       onEventClick={(txnId) => {
                         if (txnId) {
                           setHighlightedTxnId(txnId);
@@ -1066,14 +993,30 @@ export default function DashboardPage() {
                   <SectionHeader label="System Health" />
                   <div className="flex-1 min-h-0">
                     <IntelligenceModule
-                      title="Backend Health Monitor"
-                      label="Service Status"
+                      title="Simulation Health Monitor"
+                      label="All Systems Operational"
                       icon={Activity}
                       accentColor="#22D3EE"
                       accentBg="rgba(34,211,238,0.04)"
-                      accentBorder="rgba(34,211,238,0.12)"
                     >
-                      <BackendHealthMonitor apiStatus={apiStatus} apiLatency={apiLatency} transactions={transactions} sourceState={sourceState} />
+                      <div className="flex flex-col h-full justify-center space-y-4">
+                        {[
+                          { name: "Mock API", status: "ACTIVE", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                          { name: "Risk Engine", status: "SIMULATED", color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
+                          { name: "Database Layer", status: "HEALTHY", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                          { name: "OAuth Layer", status: "ACTIVE", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                          { name: "Settlement Layer", status: "SIMULATED", color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" }
+                        ].map((srv, i) => (
+                           <div key={i} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                             <span className="text-sm text-slate-300 font-medium">{srv.name}</span>
+                             <span className={`text-[10px] font-bold font-mono-data px-2 py-1 rounded tracking-widest ${srv.color} ${srv.bg} ${srv.border}`}>{srv.status}</span>
+                           </div>
+                        ))}
+                        <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/10">
+                           <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono-data">Summary</span>
+                           <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono-data">5/5 Simulation Services Available</span>
+                        </div>
+                      </div>
                     </IntelligenceModule>
                   </div>
                 </div>
@@ -1093,7 +1036,7 @@ export default function DashboardPage() {
                 >
                   {/* Table header bar */}
                   <div
-                    className="px-6 py-4 flex items-center justify-between sticky top-0 z-10"
+                    className="px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between sticky top-0 z-10"
                     style={{
                       background: "rgba(8,17,32,0.92)",
                       backdropFilter: "blur(12px)",
@@ -1104,39 +1047,39 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3">
                       <Server className="w-4 h-4 text-cyan-500/70" />
                       <h2 className="text-sm font-semibold text-white tracking-tight">
-                        Transaction Ledger
+                        MOCK DATASET
                       </h2>
                       <span
-                        className="font-mono-data text-[10px] px-2 py-0.5 rounded"
+                        className="font-mono-data text-[10px] px-2 py-0.5 rounded uppercase tracking-widest"
                         style={{
                           background: "rgba(34,211,238,0.08)",
                           color: "rgba(34,211,238,0.7)",
                           border: "1px solid rgba(34,211,238,0.12)",
                         }}
                       >
-                        {transactions.length} Records
+                        50 SYNTHETIC RECORDS
                       </span>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
                       {/* Pagination placeholder banner */}
                       <span className="font-mono-data text-[10px] text-slate-500 uppercase tracking-widest hidden sm:block">
                         Showing 1–{Math.min(transactions.length, 50)} of {transactions.length}
                       </span>
                       {/* Exports */}
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5" title="Generated Synthetic Dataset">
                         <button onClick={exportCSV} className="flex items-center gap-1 text-[10px] uppercase font-mono-data tracking-wider px-2 py-1 bg-white/5 hover:bg-white/10 rounded transition-colors text-slate-300 border border-white/10">
-                          <Download className="w-3 h-3" /> CSV
+                          <Download className="w-3 h-3" /> EXPORT MOCK CSV
                         </button>
                         <button onClick={exportJSON} className="flex items-center gap-1 text-[10px] uppercase font-mono-data tracking-wider px-2 py-1 bg-white/5 hover:bg-white/10 rounded transition-colors text-slate-300 border border-white/10">
-                          <Download className="w-3 h-3" /> JSON
+                          <Download className="w-3 h-3" /> EXPORT MOCK JSON
                         </button>
                       </div>
                     </div>
                   </div>
 
                   {/* Table */}
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                    <table className="w-full text-left text-sm table-fixed mb-4">
+                  <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+                    <table className="w-full text-left text-sm table-fixed mb-4 min-w-[800px]">
                       <thead className="sticky top-0 z-10">
                         <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                           {[
@@ -1256,33 +1199,7 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* TOAST NOTIFICATION */}
-      <div 
-        className={`fixed bottom-6 right-6 z-50 transition-all duration-300 transform ${toastMessage ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}
-      >
-        <div 
-          className="flex items-center gap-3 px-4 py-3 rounded-lg shadow-2xl border"
-          style={{
-            background: "rgba(15, 23, 42, 0.95)",
-            backdropFilter: "blur(8px)",
-            borderColor: sourceState === "LIVE_API" ? "rgba(16,185,129,0.3)" : "rgba(245,158,11,0.3)",
-          }}
-        >
-          {sourceState === "LIVE_API" ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          ) : (
-            <AlertTriangle className="w-5 h-5 text-amber-400" />
-          )}
-          <p className="text-sm font-medium text-slate-200">
-            {toastMessage?.split('. ').map((line, i) => (
-              <span key={i}>
-                {line}
-                {i === 0 && toastMessage.includes('. ') && <br />}
-              </span>
-            ))}
-          </p>
-        </div>
-      </div>
+      {/* TOAST NOTIFICATION REMOVED */}
 
     </main>
   );
@@ -1325,11 +1242,11 @@ function DataSourceBadge({
   let borderColor = "rgba(245,158,11,0.2)";
   let isLive = false;
 
-  if (status === "OFFLINE") {
-    sourceState = "SOURCE: OFFLINE FALLBACK";
-    color = "#EF4444"; // Red
-    bgColor = "rgba(239,68,68,0.08)";
-    borderColor = "rgba(239,68,68,0.2)";
+  if (status === "OFFLINE" || mode === "MOCK") {
+    sourceState = "SIMULATION MODE ACTIVE";
+    color = "#F59E0B"; // Amber for simulation
+    bgColor = "rgba(245,158,11,0.08)";
+    borderColor = "rgba(245,158,11,0.2)";
   } else if (mode === "LIVE") {
     sourceState = "SOURCE: LIVE API";
     color = "#10B981"; // Emerald
@@ -1419,7 +1336,7 @@ function KpiCard({
   title: string;
   value: string;
   subValue: string;
-  icon: any;
+  icon: React.ElementType;
   accentColor: string;
   trend: "up" | "down" | "neutral";
   alert?: boolean;
@@ -1532,7 +1449,7 @@ function LedgerRow({
   return (
     <tr
       id={`txn-${txn.id}`}
-      className={`ledger-row transition-all duration-300 ${isHighlighted ? 'bg-cyan-900/40' : 'hover:bg-white/[0.02]'}`}
+      className={`ledger-row group transition-all duration-300 ${isHighlighted ? 'bg-cyan-900/40' : 'hover:bg-white/[0.03] hover:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'}`}
       onClick={onClick}
       style={{
         borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.03)",
@@ -1540,7 +1457,7 @@ function LedgerRow({
       }}
     >
       {/* User */}
-      <td className="pl-6 pr-3 py-4 overflow-hidden text-ellipsis whitespace-nowrap">
+      <td className="pl-6 pr-3 py-4 overflow-hidden text-ellipsis whitespace-nowrap border-l-2 border-transparent group-hover:border-cyan-500/50">
         <div className="flex items-center gap-3">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xs"
@@ -1552,7 +1469,7 @@ function LedgerRow({
           >
             {txn.user[0].toUpperCase()}
           </div>
-          <span className="text-sm font-medium text-slate-200">{txn.user}</span>
+          <span className="text-sm font-medium text-slate-200 truncate min-w-0">{txn.user}</span>
         </div>
       </td>
 
@@ -1601,15 +1518,15 @@ function LedgerRow({
             <span>{txn.risk_level}</span>
           </span>
           <div
-            className="w-16 h-1 rounded-full overflow-hidden"
+            className="w-full max-w-[80px] h-1.5 rounded-full overflow-hidden"
             style={{ background: "rgba(255,255,255,0.06)" }}
           >
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
-                width: `${txn.risk_score}%`,
+                width: `${Math.min(100, Math.max(5, txn.risk_score))}%`,
                 background: risk.color,
-                opacity: 0.7,
+                opacity: 0.9,
               }}
             />
           </div>
@@ -1645,13 +1562,7 @@ function LedgerRow({
         <div className="flex items-center gap-1.5">
           <Clock className="w-3 h-3 text-slate-700 flex-shrink-0" />
           <span className="font-mono-data text-[11px] text-slate-600">
-            {new Date(txn.timestamp).toLocaleString(undefined, {
-              month: "short",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })}
+            {new Date(txn.timestamp).toISOString().replace('T', ' ').substring(0, 19) + ' UTC'}
           </span>
         </div>
       </td>
@@ -1669,15 +1580,15 @@ function IntelligenceModule({
   icon: Icon,
   accentColor,
   accentBg,
-  accentBorder,
+  headerBadge,
   children,
 }: {
   title: string;
   label: string;
-  icon: any;
+  icon: React.ElementType;
   accentColor: string;
   accentBg: string;
-  accentBorder: string;
+  headerBadge?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -1690,24 +1601,28 @@ function IntelligenceModule({
     >
       {/* Header */}
       <div
-        className="px-5 py-4 flex items-center gap-3"
+        className="px-5 py-4 flex items-center justify-between"
         style={{
           background: accentBg,
           borderBottom: "1px solid rgba(255,255,255,0.04)",
           borderLeft: `3px solid ${accentColor}`,
         }}
       >
-        <Icon className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-        <div className="flex-1 min-w-0">
-          <p className="section-label">{label}</p>
-          <p className="text-white font-semibold text-sm leading-none mt-0.5">
-            {title}
-          </p>
+        <div className="flex items-center gap-3">
+          <Icon className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+          <div className="flex-1 min-w-0">
+            <p className="section-label">{label}</p>
+            <p className="text-white font-semibold text-sm leading-none mt-0.5">
+              {title}
+            </p>
+          </div>
         </div>
-        <div
-          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-          style={{ background: accentColor, opacity: 0.7 }}
-        />
+        {headerBadge ? headerBadge : (
+          <div
+            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+            style={{ background: accentColor, opacity: 0.7 }}
+          />
+        )}
       </div>
 
       {/* Content */}
@@ -1725,12 +1640,16 @@ function RailTelemetryRow({
   status,
   load,
   latency,
+  successRate,
+  settlementTime,
   context,
 }: {
   name: string;
   status: string;
   load: number;
   latency: string;
+  successRate?: string;
+  settlementTime?: string;
   context?: string;
 }) {
   const loadInt = Math.round(load);
@@ -1758,8 +1677,16 @@ function RailTelemetryRow({
           <span className="text-sm font-semibold text-slate-300 font-mono-data">
             {name}
           </span>
+          {successRate && (
+            <span className="text-[10px] text-slate-500 font-mono-data ml-1">{successRate} success</span>
+          )}
         </div>
         <div className="flex items-center gap-3">
+          {settlementTime && (
+            <span className="font-mono-data text-[10px] text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">
+              {settlementTime}
+            </span>
+          )}
           <span className="font-mono-data text-[10px] text-slate-600">
             {latency}
           </span>
@@ -1781,39 +1708,13 @@ function RailTelemetryRow({
             style={{ width: `${loadInt}%`, background: barColor }}
           />
         </div>
-        <span className="font-mono-data text-[10px] text-slate-600 w-8 text-right tabular-nums">
-          {loadInt}%
+        <span className="font-mono-data text-[10px] text-slate-600 text-right tabular-nums whitespace-nowrap">
+          Volume Share: {loadInt}%
         </span>
       </div>
       {context && (
         <p className="text-[10px] text-slate-500 mt-1.5 leading-tight">{context}</p>
       )}
-    </div>
-  );
-}
-
-// =============================================================================
-// RISK STAT ROW
-// =============================================================================
-
-function RiskStat({
-  label,
-  value,
-  highlight = false,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="section-label">{label}</span>
-      <span
-        className="font-mono-data text-xs font-semibold tabular-nums"
-        style={{ color: highlight ? "#F87171" : "#CBD5E1" }}
-      >
-        {value}
-      </span>
     </div>
   );
 }

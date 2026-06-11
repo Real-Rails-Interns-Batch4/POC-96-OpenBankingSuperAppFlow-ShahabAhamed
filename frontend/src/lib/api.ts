@@ -15,7 +15,7 @@ export async function fetchTransactions(): Promise<TransactionsResponse> {
 
     const data = await response.json();
     return data;
-  } catch (error) {
+  } catch {
     console.warn("Backend unavailable. Using MOCK mode.");
     return {
       source_mode: "ERROR",
@@ -33,7 +33,7 @@ export async function fetchSourceStatus() {
 
     return await response.json();
 
-  } catch (error) {
+  } catch {
 
     return {
       mode: "MOCK",
