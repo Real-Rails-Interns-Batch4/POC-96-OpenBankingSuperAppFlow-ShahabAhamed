@@ -5,7 +5,7 @@ import React from "react";
 // Animated connector between nodes
 function FlowConnector({ glowColor }: { glowColor: string }) {
   return (
-    <div className="flex-1 flex items-center justify-center px-2 min-w-[24px]">
+    <div className="flex items-center justify-center px-1.5 w-8 xl:w-12 shrink-0">
       <div
         className="flow-line relative w-full h-px overflow-hidden"
         style={{ 
@@ -194,7 +194,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
 
   return (
     <div
-      className="premium-card rounded-xl p-5"
+      className="premium-card rounded-xl p-8"
       style={{
         background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
         border: "1px solid rgba(255,255,255,0.05)",
@@ -222,15 +222,15 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-        {/* LEFT SIDE: Pipeline (80% approx) */}
-        <div className="lg:col-span-4 flex items-center w-full overflow-x-auto">
+      <div className="grid grid-cols-1 gap-8 items-stretch">
+        {/* Pipeline - Full Width */}
+        <div className="flex items-center justify-between w-full px-1 py-4">
           {PIPELINE_NODES.map((node, index) => {
             const isLast = index === PIPELINE_NODES.length - 1;
             const elements = [
               <div
                 key={`${node.id}-node`}
-                className={`premium-card-secondary w-[180px] shrink-0 rounded-lg p-4 flex flex-col justify-center gap-2.5 cursor-default relative ${node.id === "rail" ? "animate-pulse" : ""}`}
+                className={`premium-card-secondary flex-1 min-w-[150px] max-w-[220px] rounded-lg p-4 flex flex-col justify-center gap-2 cursor-default relative ${node.id === "rail" ? "animate-pulse" : ""}`}
                 style={{
                   background: node.accentBg,
                   border: `1px solid ${node.accentBorder}`,
@@ -238,9 +238,9 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
                 }}
               >
                 {/* Icon + status */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-1">
                   <div
-                    className="flex items-center justify-center w-8 h-8 rounded-md"
+                    className="flex items-center justify-center w-10 h-10 rounded-md"
                     style={{
                       color: node.accentColor,
                       background: "rgba(0,0,0,0.2)",
@@ -261,13 +261,13 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
                 </div>
 
                 {/* Label */}
-                <div className="mt-1">
-                  <p className="section-label mb-1" style={{ color: "rgba(148,163,184,0.7)" }}>
+                <div className="mt-2">
+                  <p className="section-label mb-2" style={{ color: "rgba(148,163,184,0.7)" }}>
                     {node.label}
                   </p>
                   {/* Value */}
                   <p
-                    className="text-sm font-bold leading-none"
+                    className="text-base font-bold leading-none"
                     style={{ color: node.accentColor }}
                   >
                     {node.value}
@@ -275,7 +275,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
                 </div>
 
                 {/* Sublabel */}
-                <p className="font-mono-data text-[10px] text-slate-500 mt-0.5">
+                <p className="font-mono-data text-[10px] text-slate-500 mt-1">
                   {node.sublabel}
                 </p>
               </div>
@@ -287,63 +287,6 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
 
             return elements;
           })}
-        </div>
-
-        {/* RIGHT SIDE: Insight Cards (20% approx) */}
-        <div className="lg:col-span-1 flex flex-col gap-4 h-full">
-          {/* Card 1 - Why This Matters */}
-          <div 
-            className="p-4 rounded-xl flex flex-col flex-1"
-            style={{ 
-              background: "rgba(255,255,255,0.015)", 
-              border: `1px solid ${railConfig.border}`,
-              boxShadow: `0 0 15px ${railConfig.color}05 inset`
-            }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: railConfig.color }} />
-                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: railConfig.color }}>
-                  Why This Matters
-                </p>
-              </div>
-              <span className="text-[9px] font-mono-data px-1.5 py-0.5 rounded animate-pulse" style={{ background: `${railConfig.color}15`, color: railConfig.color }}>
-                {railConfig.value === "WIRE" ? "99% CONF" : railConfig.value === "RTP" ? "96% CONF" : "94% CONF"}
-              </span>
-            </div>
-            <ul className="text-xs text-slate-300 space-y-2 flex-1">
-              {railConfig.whyItMatters.map((point, i) => (
-                <li key={i} className="flex items-start gap-1.5">
-                  <span className="opacity-40 text-[10px] mt-0.5" style={{ color: railConfig.color }}>•</span>
-                  <span className="leading-snug">{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Card 2 - Who Controls The Rail */}
-          <div 
-            className="p-4 rounded-xl flex flex-col flex-1"
-            style={{ 
-              background: "rgba(255,255,255,0.015)", 
-              border: "1px solid rgba(255,255,255,0.05)"
-            }}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-500 flex-shrink-0" />
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Who Controls The Rail
-              </p>
-            </div>
-            <div className="space-y-2.5 mt-auto">
-              {Object.entries(railConfig.governance).map(([key, val]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500">{key}</span>
-                  <span className="text-[10px] font-medium text-slate-300 text-right">{val}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

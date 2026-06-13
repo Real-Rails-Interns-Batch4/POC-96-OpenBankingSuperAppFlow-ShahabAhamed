@@ -77,7 +77,7 @@ export default function LiveOperationsStream({
             <div
               key={evt.id}
               onClick={() => onEventClick && onEventClick(evt.txnId)}
-              className={`px-5 py-4 flex items-start gap-4 transition-all duration-150 ${evt.txnId ? 'cursor-pointer hover:bg-white/[0.02]' : ''}`}
+              className={`px-5 py-5 flex items-start gap-4 transition-all duration-150 ${evt.txnId ? 'cursor-pointer hover:bg-white/[0.02]' : ''}`}
               style={{
                 animation: evt.isNew
                   ? "slide-up-fade 0.3s ease-out both"
@@ -87,7 +87,7 @@ export default function LiveOperationsStream({
             >
               {/* Severity dot */}
               <div
-                className="flex-shrink-0 w-1.5 h-1.5 rounded-full mt-1.5"
+                className="flex-shrink-0 w-2 h-2 rounded-full mt-2"
                 style={{ background: cfg.dot }}
               />
 
