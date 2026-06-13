@@ -557,7 +557,7 @@ export default function DashboardPage() {
             70/30 GRID LAYOUT - Full page container
         ==================================================================== */}
 
-        <div className="grid grid-cols-[70%_30%] gap-8 flex-1 min-h-0 h-full overflow-hidden">
+        <div className="grid grid-cols-[70%_30%] gap-8 flex-1 min-h-0 h-full overflow-hidden" style={{ borderRight: "none" }}>
 
           {/* ════════════════════════════════════════════════════════════════
               LEFT COLUMN (70%) - Main Operational Workspace
@@ -1188,9 +1188,9 @@ export default function DashboardPage() {
                         borderBottom: "1px solid rgba(255,255,255,0.05)",
                       }}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 sm:gap-6">
                         <Server className="w-4 h-4 text-cyan-500/70" />
-                        <h2 className="text-sm font-semibold text-white tracking-tight">
+                        <h2 className="text-sm font-semibold text-white tracking-tight mr-4">
                           MOCK DATASET
                         </h2>
                         <span
@@ -1204,9 +1204,9 @@ export default function DashboardPage() {
                           8 SYNTHETIC RECORDS
                         </span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 mt-2 sm:mt-0">
+                      <div className="flex flex-wrap items-center gap-6 sm:gap-8 mt-2 sm:mt-0">
                         {/* Pagination placeholder banner */}
-                        <span className="font-mono-data text-[10px] text-slate-500 uppercase tracking-widest hidden sm:block">
+                        <span className="font-mono-data text-[10px] text-slate-500 uppercase tracking-widest hidden sm:block mr-2">
                           Showing 1–{Math.min(transactions.length, 8)} of {transactions.length}
                         </span>
                         {/* Exports */}
@@ -1292,7 +1292,7 @@ export default function DashboardPage() {
                     {transactions.length > 8 && (
                       <div className="px-6 py-3 border-t flex justify-between items-center bg-white/5" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
                         <span className="font-mono-data text-[10px] text-slate-500 uppercase tracking-widest">
-                          Click row to drill down
+                          SELECT A TRANSACTION TO VIEW DETAILS
                         </span>
                         <div className="flex gap-2 items-center">
                           <button className="text-[10px] font-mono-data text-slate-400 hover:text-white transition-colors disabled:opacity-50 mr-2" disabled>
@@ -1389,7 +1389,7 @@ export default function DashboardPage() {
                       <p className="text-[10px] text-slate-500 mt-0.5">Executive Summary</p>
                     </div>
                   </div>
-                  <div className="space-y-4 text-sm text-slate-300 leading-relaxed break-words w-full">
+                  <div className="space-y-4 text-sm text-slate-300 leading-relaxed break-words w-full pb-5">
                     <p>
                       <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Operational Assessment</strong>
                       Stable flow through primary ACH corridors, maintaining optimal processing bands.
@@ -1785,7 +1785,7 @@ function LedgerRow({
   return (
     <tr
       id={`txn-${txn.id}`}
-      className={`ledger-row group transition-all duration-300 ${isHighlighted ? 'bg-cyan-900/40' : 'hover:bg-white/[0.03] hover:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'}`}
+      className={`ledger-row group transition-all duration-300 ${isHighlighted ? 'bg-cyan-900/20' : 'hover:bg-white/[0.03] hover:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'}`}
       onClick={onClick}
       style={{
         borderBottom: isLast ? "none" : "1px solid rgba(255,255,255,0.03)",
@@ -1793,7 +1793,7 @@ function LedgerRow({
       }}
     >
       {/* User */}
-      <td className="pl-6 pr-3 py-4 overflow-hidden text-ellipsis whitespace-nowrap border-l-2 border-transparent group-hover:border-cyan-500/50">
+      <td className={`pl-6 pr-3 py-4 overflow-hidden text-ellipsis whitespace-nowrap border-l-2 ${isHighlighted ? 'border-cyan-500/35 shadow-[inset_2px_0_10px_rgba(34,211,238,0.05)]' : 'border-transparent group-hover:border-cyan-500/30'}`}>
         <div className="flex items-center gap-3">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xs"
@@ -1947,7 +1947,7 @@ function IntelligenceModule({
         <div className="flex items-center gap-3">
           <Icon className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
           <div className="flex-1 min-w-0">
-            <p className="section-label">{label}</p>
+            <p className="section-label mb-0">{label}</p>
             <p className="text-white font-semibold text-sm leading-none mt-0.5">
               {title}
             </p>
@@ -2017,15 +2017,19 @@ function RailTelemetryRow({
             <span className="text-[10px] text-slate-500 font-mono-data ml-1">{successRate} success</span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {settlementTime && (
-            <span className="font-mono-data text-[10px] text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">
-              {settlementTime}
-            </span>
+            <>
+              <span className="font-mono-data text-[10px] text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">
+                {settlementTime}
+              </span>
+              <span className="text-slate-600 text-[10px]">•</span>
+            </>
           )}
           <span className="font-mono-data text-[10px] text-slate-600">
             {latency}
           </span>
+          <span className="text-slate-600 text-[10px]">•</span>
           <span
             className="font-mono-data text-[10px] font-semibold"
             style={{ color: statusColor }}

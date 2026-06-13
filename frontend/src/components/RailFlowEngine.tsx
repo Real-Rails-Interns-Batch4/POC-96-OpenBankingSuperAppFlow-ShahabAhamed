@@ -224,13 +224,13 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
 
       <div className="grid grid-cols-1 gap-8 items-stretch">
         {/* Pipeline - Full Width */}
-        <div className="flex items-center justify-between w-full px-1 py-4">
+        <div className="flex items-center justify-between w-full px-1 py-6">
           {PIPELINE_NODES.map((node, index) => {
             const isLast = index === PIPELINE_NODES.length - 1;
             const elements = [
               <div
                 key={`${node.id}-node`}
-                className={`premium-card-secondary flex-1 min-w-[150px] max-w-[220px] rounded-lg p-4 flex flex-col justify-center gap-2 cursor-default relative ${node.id === "rail" ? "animate-pulse" : ""}`}
+                className={`premium-card-secondary flex-1 min-w-[150px] max-w-[220px] rounded-lg p-3 flex flex-col justify-center gap-1.5 cursor-default relative ${node.id === "rail" ? "animate-pulse" : ""}`}
                 style={{
                   background: node.accentBg,
                   border: `1px solid ${node.accentBorder}`,
@@ -238,9 +238,9 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
                 }}
               >
                 {/* Icon + status */}
-                <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center justify-between mb-0.5">
                   <div
-                    className="flex items-center justify-center w-10 h-10 rounded-md"
+                    className="flex items-center justify-center w-8 h-8 rounded-md"
                     style={{
                       color: node.accentColor,
                       background: "rgba(0,0,0,0.2)",
@@ -261,7 +261,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
                 </div>
 
                 {/* Label */}
-                <div className="mt-2">
+                <div className="mt-1">
                   <p className="section-label mb-2" style={{ color: "rgba(148,163,184,0.7)" }}>
                     {node.label}
                   </p>
@@ -275,7 +275,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
                 </div>
 
                 {/* Sublabel */}
-                <p className="font-mono-data text-[10px] text-slate-500 mt-1">
+                <p className="font-mono-data text-[10px] text-slate-500 mt-0.5">
                   {node.sublabel}
                 </p>
               </div>

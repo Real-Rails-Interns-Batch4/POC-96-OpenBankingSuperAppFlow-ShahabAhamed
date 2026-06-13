@@ -111,7 +111,7 @@ export default function LiveOperationsStream({
 
               {/* Severity badge */}
               <span
-                className="font-mono-data text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded flex-shrink-0 self-start"
+                className="font-mono-data text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded flex-shrink-0 self-start text-center w-[72px]"
                 style={{
                   color: cfg.color,
                   background: cfg.bg,

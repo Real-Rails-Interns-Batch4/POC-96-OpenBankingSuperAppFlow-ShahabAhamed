@@ -107,13 +107,13 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
             border: "1px solid rgba(167,139,250,0.2)",
           }}
         >
-          <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-purple-400" style={{ animation: "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
           REAL-TIME
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x"
-        style={{ borderColor: "rgba(255,255,255,0.04)" }}
+        style={{ borderColor: "rgba(255,255,255,0.02)" }}
       >
         {/* ── LEFT: Inputs ── */}
         <div className="p-5 space-y-4 flex flex-col h-full">
@@ -468,9 +468,9 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
 
           <div className="grid grid-cols-2 gap-3 mt-3">
             {/* Decision Inputs */}
-            <div className="p-3.5 rounded-lg flex flex-col h-full" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-              <p className="section-label mb-3 text-slate-300">Decision Inputs</p>
-              <div className="space-y-2 flex-1">
+            <div className="px-3 py-2.5 rounded-lg flex flex-col h-full" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <p className="section-label mb-2 text-slate-300">Decision Inputs</p>
+              <div className="space-y-1.5 flex-1 mt-1">
                 <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500">Amount</span><span className="text-[10px] font-mono-data text-white">${input.amount.toLocaleString()}</span></div>
                 <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500">Risk Score</span><span className="text-[10px] font-mono-data" style={{ color: riskColor }}>{input.riskScore}</span></div>
                 <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500">Priority</span><span className="text-[10px] font-mono-data text-white">{input.priority}</span></div>

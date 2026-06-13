@@ -94,7 +94,7 @@ export default function SystemStatusBar({ sourceState }: SystemStatusBarProps) {
 
             {/* Content */}
             <div className="min-w-0">
-              <p className="section-label truncate mb-1">{system.name}</p>
+              <p className="section-label truncate mb-0.5">{system.name}</p>
               <p className={`text-sm font-semibold ${system.textColor} leading-none`}>
                 {system.status}
               </p>

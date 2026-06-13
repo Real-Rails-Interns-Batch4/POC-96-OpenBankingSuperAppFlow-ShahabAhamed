@@ -51,24 +51,24 @@ export default function AnalyticsIntelligence({
       </div>
 
       {/* Content */}
-      <div className="p-5 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-        <ul className="space-y-4">
+      <div className="px-5 py-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <ul className="space-y-3">
           <li className="flex items-start gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(167,139,250,0.6)]" />
             <p className="text-sm text-slate-300 leading-relaxed">
-              <span className="text-white font-semibold">ACH</span> processed <span className="font-mono-data text-purple-400 font-semibold">{achPct}%</span> of routed volume due to lower cost profile and standard settlement parameters.
+              <span className="text-white font-semibold">ACH</span> remained the dominant settlement corridor, processing <span className="font-mono-data text-purple-400 font-semibold">{achPct}%</span> of total volume and demonstrating stable routing efficiency.
             </p>
           </li>
           <li className="flex items-start gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
             <p className="text-sm text-slate-300 leading-relaxed">
-              <span className="font-mono-data text-emerald-400 font-semibold">{lowRiskPct}%</span> of transactions remained within low-risk thresholds, confirming strong early-stage fraud prevention.
+              Network security models sustained high efficacy, with <span className="font-mono-data text-emerald-400 font-semibold">{lowRiskPct}%</span> of transactions clearing low-risk thresholds and requiring zero manual intervention.
             </p>
           </li>
           <li className="flex items-start gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
             <p className="text-sm text-slate-300 leading-relaxed">
-              <span className="text-white font-semibold">RTP</span> usage scaled efficiently to accommodate high-priority and immediate settlement demands.
+              Expedited corridors like <span className="text-white font-semibold">RTP</span> successfully absorbed high-priority settlement demands without introducing systemic latency.
             </p>
           </li>
         </ul>

@@ -336,19 +336,19 @@ export function generateNarrative(
   const { amount, riskScore, priority } = input;
 
   if (rail === "WIRE") {
-    if (amount >= 50_000) return { primary: `WIRE selected: mandatory for high-value transactions ≥$50K.`, secondary: "" };
-    if (amount >= 10_000) return { primary: `WIRE selected: crosses BSA reporting threshold, requiring institutional settlement.`, secondary: "" };
-    return { primary: `WIRE selected: elevated risk score requires pre-settlement review.`, secondary: "" };
+    if (amount >= 50_000) return { primary: `Institutional settlement pathway activated. Transaction volume exceeds high-value thresholds.`, secondary: "" };
+    if (amount >= 10_000) return { primary: `Compliance monitoring triggered. Transaction structure requires institutional clearing due to BSA threshold parameters.`, secondary: "" };
+    return { primary: `Enhanced review protocol active. Pre-settlement audit mandated by elevated counterparty risk signals.`, secondary: "" };
   }
 
   if (rail === "RTP") {
-    if (priority === "URGENT" && riskScore < 55) return { primary: `RTP selected: urgent priority, low risk, requires instant finality.`, secondary: "" };
-    return { primary: `RTP selected: urgent priority overrides elevated risk; instant finality reduces exposure.`, secondary: "" };
+    if (priority === "URGENT" && riskScore < 55) return { primary: `Expedited corridor selected. Optimized for immediate liquidity transfer with minimal risk friction.`, secondary: "" };
+    return { primary: `Time-critical execution prioritized. Instant finality reduces counterparty exposure despite elevated risk indicators.`, secondary: "" };
   }
 
   // ACH
-  if (priority === "BATCH") return { primary: `ACH selected: batch processing, cost-optimal bulk settlement path.`, secondary: "" };
-  return { primary: `ACH selected: low risk, standard priority, cost-optimal settlement path.`, secondary: "" };
+  if (priority === "BATCH") return { primary: `Cost-optimized batch processing engaged. Strategic routing aligns with standard operating parameters.`, secondary: "" };
+  return { primary: `Standard settlement authorized. Operational profile matches optimal cost-efficiency metrics.`, secondary: "" };
 }
 
 // ─── Decision Factors Generator ───────────────────────────────────────────────
@@ -361,30 +361,30 @@ export function generateDecisionFactors(
   const factors: string[] = [];
 
   // Amount context
-  if (amount < 10_000) factors.push(`Amount ${amount < 1000 ? "well " : ""}below WIRE threshold ($${amount.toLocaleString()} < $10,000)`);
-  else if (amount >= 50_000) factors.push(`Amount exceeds institutional threshold ($${amount.toLocaleString()} ≥ $50,000)`);
-  else factors.push(`Amount crosses BSA monitoring threshold ($${amount.toLocaleString()} ≥ $10,000)`);
+  if (amount < 10_000) factors.push(`Volume classification: Below institutional routing threshold ($${amount.toLocaleString()})`);
+  else if (amount >= 50_000) factors.push(`Volume classification: Exceeds institutional threshold requirements ($${amount.toLocaleString()})`);
+  else factors.push(`Volume classification: Triggers BSA monitoring protocols ($${amount.toLocaleString()})`);
 
   // Risk context
-  if (riskScore < 35) factors.push(`Risk score within low-risk band (${riskScore}/100)`);
-  else if (riskScore < 65) factors.push(`Risk score within medium-risk band (${riskScore}/100)`);
-  else factors.push(`Elevated risk score triggers escalation (${riskScore}/100)`);
+  if (riskScore < 35) factors.push(`Counterparty assessment: Low friction / Standard clearance (${riskScore}/100)`);
+  else if (riskScore < 65) factors.push(`Counterparty assessment: Standard monitoring / Nominal risk (${riskScore}/100)`);
+  else factors.push(`Counterparty assessment: Elevated risk signals require structural mitigation (${riskScore}/100)`);
 
   // Priority context
-  if (priority === "URGENT") factors.push("URGENT priority flag — settlement speed required");
-  else if (priority === "BATCH") factors.push("BATCH mode active — cost-optimal routing selected");
-  else factors.push("Standard priority — batch routing eligible");
+  if (priority === "URGENT") factors.push("SLA Requirement: Immediate liquidity transfer mandated");
+  else if (priority === "BATCH") factors.push("SLA Requirement: Cost-optimized bulk aggregation preferred");
+  else factors.push("SLA Requirement: Standard settlement timeline acceptable");
 
   // Rail-specific
   if (rail === "ACH") {
-    factors.push("Domestic payment — no SWIFT correspondent routing needed");
-    factors.push("Cost optimization mode active — lowest per-item fee");
+    factors.push("Network selection: Standard clearance path bypasses premium corridor costs");
+    factors.push("Network selection: Domestic transfer model preserves fee efficiency");
   } else if (rail === "WIRE") {
-    factors.push("RTGS settlement required — irrevocable finality mandated");
-    factors.push("BSA/AML compliance monitoring — full audit trail enabled");
+    factors.push("Network selection: Irrevocable finality secured via RTGS");
+    factors.push("Network selection: Comprehensive audit trail established for compliance");
   } else {
-    factors.push("24/7 availability required — no cutoff window constraint");
-    factors.push("Instant settlement reduces counterparty exposure window");
+    factors.push("Network selection: Uninterrupted 24/7/365 availability guaranteed");
+    factors.push("Network selection: Immediate finality neutralizes temporal counterparty exposure");
   }
 
   return factors;

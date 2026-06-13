@@ -291,11 +291,11 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
           </div>
 
           <div
-            className="px-3 py-1.5 flex items-center gap-1.5"
-            style={{ background: "rgba(255,255,255,0.01)", borderTop: "1px solid rgba(255,255,255,0.04)" }}
+            className="px-3 py-1.5 flex items-center gap-1.5 opacity-50"
+            style={{ background: "transparent", borderTop: "1px solid rgba(255,255,255,0.02)" }}
           >
-            <RefreshCw className="w-2.5 h-2.5 text-slate-700" />
-            <span className="font-mono-data text-[9px] text-slate-600">
+            <RefreshCw className="w-2.5 h-2.5 text-slate-600" />
+            <span className="font-mono-data text-[8px] text-slate-600 tracking-wider">
               Institution: {input.institution ?? "Chase"} · PSD2 compliant · FCA registered
             </span>
           </div>
@@ -313,7 +313,7 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
             return (
               <div
                 key={r}
-                className="px-3 py-2.5 rounded-xl transition-all duration-300 relative"
+                className="px-3 py-2.5 rounded-xl transition-all duration-300 relative flex flex-col h-full"
                 style={{
                   background: isRec ? rs.dimBg : "rgba(255,255,255,0.015)",
                   border: `1px solid ${isRec ? rs.border : "rgba(255,255,255,0.04)"}`,
@@ -329,7 +329,7 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
                     {r}
                   </span>
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1 justify-end">
                   {[
                     { l: "Settlement", v: rc.settlementWindow },
                     { l: "Cost", v: rc.flatFeeDisplay },
@@ -337,9 +337,9 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
                     { l: "Risk", v: rc.riskLevel },
                     { l: "Availability", v: rc.availability },
                   ].map(x => (
-                    <div key={x.l} className="flex justify-between items-center border-b border-white/5 py-1.5 last:border-0 h-[26px]">
+                    <div key={x.l} className="flex justify-between items-center border-b border-white/5 py-1.5 last:border-0 h-[28px]">
                       <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">{x.l}</span>
-                      <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">{x.v}</span>
+                      <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right whitespace-nowrap">{x.v}</span>
                     </div>
                   ))}
                 </div>

@@ -88,15 +88,17 @@ export default function TransactionTimeline({
             Transaction Volume Trend
           </h3>
         </div>
-        <div className="flex gap-4 opacity-80 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="flex items-center gap-4 px-3 py-1.5 rounded-lg bg-slate-800/40 border border-white/5 opacity-80 transition-opacity duration-300 group-hover:opacity-100">
           <div className="text-right">
             <span className="font-mono-data text-[9px] uppercase tracking-widest text-slate-500 block mb-0.5">Average</span>
             <span className="font-mono-data text-xs font-semibold text-slate-300">${avgVol.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
           </div>
+          <div className="w-px h-6 bg-white/10" />
           <div className="text-right">
             <span className="font-mono-data text-[9px] uppercase tracking-widest text-slate-500 block mb-0.5">▼ Lowest</span>
             <span className="font-mono-data text-xs font-semibold text-emerald-400">${minVol.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
           </div>
+          <div className="w-px h-6 bg-white/10" />
           <div className="text-right">
             <span className="font-mono-data text-[9px] uppercase tracking-widest text-slate-500 block mb-0.5">▲ Peak</span>
             <span className="font-mono-data text-xs font-semibold text-amber-400">${maxVol.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
