@@ -69,7 +69,7 @@ export default function RiskDistributionChart({
 
   return (
     <div
-      className="rounded-xl p-5 flex flex-col justify-between h-[280px]"
+      className="rounded-xl p-5 flex flex-col justify-between min-h-[320px]"
       style={{
         background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
         border: "1px solid rgba(255,255,255,0.05)",
@@ -87,8 +87,8 @@ export default function RiskDistributionChart({
       {/* Content */}
       <div className="flex-1 flex mt-4">
         {/* Chart */}
-        <div className="w-3/5 min-w-0 min-h-[150px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="w-3/5 min-w-0" style={{ height: 180 }}>
+          <ResponsiveContainer width="100%" height={180}>
             <BarChart
               data={data}
               margin={{ top: 20, right: 10, left: -24, bottom: 0 }}
