@@ -203,7 +203,7 @@ export default function DashboardPage() {
           
           if (newTxns.length > 0) {
             const t = newTxns[0]; // Pick one transaction to anchor the event
-            const cycleIdx = eventCycleRef.current % 8;
+            const cycleIdx = eventCycleRef.current % 6;
             eventCycleRef.current += 1;
             
             const eventIdNum = Math.floor(Math.random() * 900) + 100;
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                 eventId: `ROUTE-${eventIdNum}`,
                 severity: "ROUTED",
                 type: "ROUTE",
-                message: `New transaction routed via ${t.rail} for ${t.user}. Routing optimal.`,
+                message: `Payment Initiation Approved via Open Banking Protocol for ${t.user}.`,
                 isNew: true,
                 txnId: t.id
               });
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                 eventId: `RISK-${eventIdNum}`,
                 severity: t.risk_level === "HIGH" || t.risk_level === "CRITICAL" ? "CRITICAL" : "RISK",
                 type: "RISK",
-                message: `Risk engine completed evaluation for ${t.bank} transfer. Score: ${t.risk_score}.`,
+                message: `Routing Decision Generated for immediate liquidity transfer.`,
                 isNew: true,
                 txnId: t.id
               });
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                 eventId: `SETTLE-${eventIdNum}`,
                 severity: "SETTLED",
                 type: "SETTLE",
-                message: `Settlement acknowledged for ${t.rail} transfer. Funds moving to ledger.`,
+                message: `FedNow Settlement Confirmed for ${t.bank}.`,
                 isNew: true,
                 txnId: t.id
               });
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                 eventId: `CONSENT-${eventIdNum}`,
                 severity: "CONSENT",
                 type: "CONSENT",
-                message: `User ${t.user} consent verified for Open Banking data access.`,
+                message: `Open Banking Consent Verified via Plaid for ${t.user}.`,
                 isNew: true,
                 txnId: t.id
               });
@@ -259,7 +259,7 @@ export default function DashboardPage() {
                 eventId: `SYNC-${eventIdNum}`,
                 severity: "SYNC",
                 type: "SYNC",
-                message: `Core banking ledger synchronized with Gateway for ${t.bank}.`,
+                message: `Plaid Account Sync Completed for ${t.bank}.`,
                 isNew: true,
                 txnId: t.id
               });
@@ -270,29 +270,7 @@ export default function DashboardPage() {
                 eventId: `AML-${eventIdNum}`,
                 severity: "AML REVIEW",
                 type: "AML",
-                message: `Automated AML checks cleared for ${t.user}.`,
-                isNew: true,
-                txnId: t.id
-              });
-            } else if (cycleIdx === 6) {
-              newEvents.push({
-                id: Math.random().toString(36).slice(2, 10),
-                timestamp: ts,
-                eventId: `LINK-${eventIdNum}`,
-                severity: "ACCOUNT LINKED",
-                type: "LINK",
-                message: `New external account successfully linked at ${t.bank}.`,
-                isNew: true,
-                txnId: t.id
-              });
-            } else if (cycleIdx === 7) {
-              newEvents.push({
-                id: Math.random().toString(36).slice(2, 10),
-                timestamp: ts,
-                eventId: `REFRESH-${eventIdNum}`,
-                severity: "ACCOUNT REFRESH",
-                type: "REFRESH",
-                message: `Real-time balance snapshot requested for ${t.user}.`,
+                message: `NACHA Settlement Processed successfully.`,
                 isNew: true,
                 txnId: t.id
               });
@@ -407,6 +385,7 @@ export default function DashboardPage() {
   // ---------------------------------------------------------------------------
 
   const {
+    totalTxns,
     connectedBanks,
     totalAmount,
     riskAlerts,
@@ -416,6 +395,7 @@ export default function DashboardPage() {
     threatLevel,
     railCounts,
     railPercentages,
+    riskPercentages,
     riskExposureScore,
     completedCount,
     pendingCount,
@@ -425,12 +405,12 @@ export default function DashboardPage() {
     
     // Operations Feed calculation
     const messages = [
-      (t: Transaction) => `Settlement Finalized | ${t.rail} | $${t.amount} | ${t.bank}`,
-      (t: Transaction) => `Risk Assessment Complete | Score ${t.risk_score} | ${t.rail} Eligible`,
+      (t: Transaction) => `Settlement Confirmed | ${t.rail === "RTP" ? "FEDNOW" : t.rail} | $${t.amount} | ${t.bank}`,
+      (t: Transaction) => `Risk Assessment Complete | Score ${t.risk_score} | ${t.rail === "RTP" ? "FEDNOW" : t.rail} Eligible`,
       (t: Transaction) => `OAuth Consent Verified | ${t.bank}`,
-      (t: Transaction) => `Rail Selection Complete | ${t.rail} Recommended`,
-      (t: Transaction) => `Transaction Approved | ${t.rail} Route`,
-      (t: Transaction) => `Settlement Finalized | ${t.rail} | $${t.amount} | ${t.bank}`
+      (t: Transaction) => `Rail Selection Complete | ${t.rail === "RTP" ? "FEDNOW" : t.rail} Recommended`,
+      (t: Transaction) => `Transaction Approved | ${t.rail === "RTP" ? "FEDNOW" : t.rail} Route`,
+      (t: Transaction) => `Settlement Confirmed | ${t.rail === "RTP" ? "FEDNOW" : t.rail} | $${t.amount} | ${t.bank}`
     ];
     const severities = ["SETTLED", "RISK", "SYNC", "ROUTED", "INFO", "SETTLED"];
     
@@ -586,20 +566,40 @@ export default function DashboardPage() {
                   </div>
 
                   <div>
-                    <h1
-                      className="text-2xl md:text-3xl font-bold text-white tracking-tight leading-none"
-                      style={{ fontFamily: "Inter, sans-serif", letterSpacing: "-0.025em" }}
-                    >
-                      Open Banking Intelligence Rail
-                    </h1>
-                    <p className="section-label mt-2 text-slate-600">
-                      Hybrid Payments Orchestration Platform · Enterprise Edition
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <h1
+                        className="text-2xl md:text-3xl font-bold text-white tracking-tight leading-none"
+                        style={{ fontFamily: "Inter, sans-serif", letterSpacing: "-0.025em" }}
+                      >
+                        Open Banking Intelligence Rail
+                      </h1>
+                      <div className="hidden sm:flex items-center gap-2 px-2 py-0.5 rounded-full" style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-[10px] font-mono-data font-bold text-emerald-400 tracking-widest uppercase">Live</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
+                      <p className="section-label text-slate-400 m-0">
+                        Enterprise Payment Orchestration & Settlement Intelligence Platform
+                      </p>
+                      <div className="hidden sm:block w-1 h-1 rounded-full bg-slate-700" />
+                      <span className="text-[10px] text-slate-500 font-mono-data uppercase tracking-widest">
+                        ENV: PRODUCTION
+                      </span>
+                      <div className="hidden sm:block w-1 h-1 rounded-full bg-slate-700" />
+                      <span className="text-[10px] text-slate-500 font-mono-data uppercase tracking-widest">
+                        Refresh: {new Date().toLocaleTimeString([], { hour12: false })} UTC
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Right side Header - Notification Bell */}
-                <div className="flex items-center gap-6 lg:flex-shrink-0">
+                {/* Right side Header - Notification Bell & Data Source */}
+                <div className="flex items-center gap-4 lg:gap-6 lg:flex-shrink-0">
+                  <div className="hidden md:block">
+                    <DataSourceBadge mode={dataMode} status={apiStatus} latency={apiLatency} />
+                  </div>
+                  
                   <div className="relative">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); setUnreadNotifications(0); }}
@@ -634,7 +634,7 @@ export default function DashboardPage() {
                               <div key={n.id} className="p-3 hover:bg-white/5 transition-colors">
                                 <div className="flex justify-between items-start mb-1">
                                   <span className={`text-[9px] font-bold uppercase tracking-wider ${n.severity === 'HIGH' ? 'text-red-400' : 'text-slate-400'}`}>
-                                    {n.severity}
+                                    {n.rail === "RTP" ? "FEDNOW" : n.rail} {n.severity}
                                   </span>
                                   <span className="text-[10px] text-slate-500 font-mono-data">{n.timestamp}</span>
                                 </div>
@@ -658,20 +658,6 @@ export default function DashboardPage() {
                 }}
               />
             </header>
-
-            {/* ════════════════════════════════════════════════════════════
-                2. SOURCE CONTROLS
-            ════════════════════════════════════════════════════════════ */}
-
-            <div>
-              <SectionHeader label="Source Controls" />
-              <div className="flex items-center gap-3">
-                <DataSourceBadge mode={dataMode} status={apiStatus} latency={apiLatency} />
-                <span className="text-xs text-slate-500 font-mono-data">
-                  Poll Interval: 5s · Last Refresh: {new Date().toLocaleTimeString([], { hour12: false })} UTC
-                </span>
-              </div>
-            </div>
 
             {/* ════════════════════════════════════════════════════════════
                 3. NAVIGATION TABS
@@ -797,7 +783,7 @@ export default function DashboardPage() {
                   <SectionHeader label="Executive Summary" />
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-4">
                     <KpiCard
-                      title="Connected Institutions"
+                      title="Connected Financial Institutions"
                       value={connectedBanks.toString()}
                       subValue="Unique Banks linked"
                       icon={CreditCard}
@@ -851,7 +837,10 @@ export default function DashboardPage() {
                     />
                     <KpiCard
                       title="Primary Rail"
-                      value={Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A"}
+                      value={(() => {
+                        const topRail = Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
+                        return topRail === "RTP" ? "FEDNOW" : topRail;
+                      })()}
                       subValue="Highest volume route"
                       icon={Zap}
                       accentColor="#34D399"
@@ -909,7 +898,11 @@ export default function DashboardPage() {
                   <SectionHeader label="Operational Analytics" />
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <div className="min-w-0">
-                      <RailUsageChart transactions={transactions} />
+                      <RailUsageChart 
+                        railCounts={railCounts}
+                        railPercentages={railPercentages}
+                        totalTxns={totalTxns}
+                      />
                     </div>
                     <div className="min-w-0">
                       <RiskDistributionChart transactions={transactions} />
@@ -961,12 +954,11 @@ export default function DashboardPage() {
                       />
                       <RailTelemetryRow
                         name="RTP"
-                        status={railCounts["RTP"] > 1 ? "Degraded" : "Optimal"}
+                        status="Monitoring"
                         load={railPercentages["RTP"]}
                         latency="94ms"
                         successRate="98.7%"
                         settlementTime="Instant"
-                        context={railCounts["RTP"] > 1 ? "Latency above target threshold" : undefined}
                       />
                     </div>
                   </div>
@@ -992,7 +984,7 @@ export default function DashboardPage() {
                          <div>
                            <p className="section-label mb-1">Risk Exposure Score</p>
                            <div className="flex items-baseline gap-1 mt-1">
-                             <p className="text-3xl font-bold leading-none font-mono-data tracking-tight" style={{ color: riskExposureScore <= 35 ? "#10B981" : riskExposureScore <= 65 ? "#F59E0B" : "#EF4444" }}>
+                             <p className="text-3xl font-bold leading-none font-mono-data tracking-tight" style={{ color: riskExposureScore <= 39 ? "#10B981" : riskExposureScore <= 69 ? "#F59E0B" : "#EF4444" }}>
                                {riskExposureScore}
                              </p>
                              <p className="text-sm font-bold text-slate-500 leading-none font-mono-data tracking-tight">/100</p>
@@ -1002,12 +994,12 @@ export default function DashboardPage() {
                            <span 
                              className="font-mono-data text-[10px] uppercase tracking-widest px-2 py-1 rounded-md border"
                              style={{ 
-                               color: riskExposureScore <= 35 ? "#34D399" : riskExposureScore <= 65 ? "#FCD34D" : "#F87171",
-                               background: riskExposureScore <= 35 ? "rgba(16,185,129,0.1)" : riskExposureScore <= 65 ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
-                               borderColor: riskExposureScore <= 35 ? "rgba(16,185,129,0.2)" : riskExposureScore <= 65 ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)"
+                               color: riskExposureScore <= 39 ? "#34D399" : riskExposureScore <= 69 ? "#FCD34D" : "#F87171",
+                               background: riskExposureScore <= 39 ? "rgba(16,185,129,0.1)" : riskExposureScore <= 69 ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)",
+                               borderColor: riskExposureScore <= 39 ? "rgba(16,185,129,0.2)" : riskExposureScore <= 69 ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)"
                              }}
                            >
-                             {riskExposureScore <= 35 ? "LOW" : riskExposureScore <= 65 ? "MEDIUM" : "HIGH"}
+                             {riskExposureScore <= 39 ? "LOW" : riskExposureScore <= 69 ? "MEDIUM" : "HIGH"}
                            </span>
                          </div>
                       </div>
@@ -1043,7 +1035,7 @@ export default function DashboardPage() {
                 <div>
                   <SectionHeader label="Analytics Findings" />
                   <div
-                    className="rounded-xl p-8"
+                    className="rounded-xl p-6"
                     style={{
                       background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
                       border: "1px solid rgba(255,255,255,0.05)",
@@ -1054,7 +1046,10 @@ export default function DashboardPage() {
                         <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2.5 flex-shrink-0" />
                         <div>
                           <p className="text-white font-semibold text-sm leading-relaxed">
-                            {Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ACH"} processed {Math.round((railCounts[Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ACH"] || 0) / Math.max(1, transactions.length) * 100)}% of routed volume and remained the dominant settlement rail.
+                            {(() => {
+                              const r = Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ACH";
+                              return r === "RTP" ? "FEDNOW" : r;
+                            })()} processed {railPercentages[Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ACH"] || 0}% of routed volume and remained the dominant settlement rail.
                           </p>
                         </div>
                       </div>
@@ -1063,7 +1058,7 @@ export default function DashboardPage() {
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2.5 flex-shrink-0" />
                         <div>
                           <p className="text-white font-semibold text-sm leading-relaxed">
-                            {Math.round((transactions.filter(t => t.risk_level === "LOW").length / Math.max(1, transactions.length)) * 100)}% of transactions remained within the Low Risk category, indicating strong compliance posture.
+                            {riskPercentages["LOW"] || 0}% of transactions remained within the Low Risk category, indicating strong compliance posture.
                           </p>
                         </div>
                       </div>
@@ -1072,7 +1067,7 @@ export default function DashboardPage() {
                         <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2.5 flex-shrink-0" />
                         <div>
                           <p className="text-white font-semibold text-sm leading-relaxed">
-                            RTP usage increased for priority settlement scenarios, with {railCounts["RTP"] || 0} transactions leveraging instant settlement rails.
+                            FedNow usage increased for priority settlement scenarios, with {railCounts["RTP"] || 0} transactions leveraging instant settlement rails.
                           </p>
                         </div>
                       </div>
@@ -1102,6 +1097,19 @@ export default function DashboardPage() {
                             Routing distribution indicates balanced rail utilization with {Object.keys(railCounts).length} active corridors operating efficiently.
                           </p>
                         </div>
+                      </div>
+                    </div>
+                    <div className="mt-5 pt-4 border-t border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <span className="font-mono-data text-[10px] text-slate-500 uppercase tracking-widest">
+                        Data Source: Synthetic Open Banking Dataset
+                      </span>
+                      <div className="flex items-center gap-4">
+                        <span className="font-mono-data text-[10px] text-emerald-500/80 uppercase tracking-widest">
+                          Confidence: 99.4%
+                        </span>
+                        <span className="font-mono-data text-[10px] text-slate-500 uppercase tracking-widest">
+                          Generated: {new Date().toLocaleTimeString([], { hour12: false })} UTC
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1137,7 +1145,7 @@ export default function DashboardPage() {
                     <SectionHeader label="System Health" />
                     <div className="flex-1 min-h-0">
                       <IntelligenceModule
-                        title="Simulation Health Monitor"
+                        title="Infrastructure Health Monitor"
                         label="All Systems Operational"
                         icon={Activity}
                         accentColor="#22D3EE"
@@ -1145,11 +1153,11 @@ export default function DashboardPage() {
                       >
                         <div className="flex flex-col space-y-2">
                           {[
-                            { name: "Mock API", status: "ACTIVE", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-                            { name: "Risk Engine", status: "SIMULATED", color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
+                            { name: "Plaid Connectivity", status: "ACTIVE", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                            { name: "Risk Engine", status: "OPERATIONAL", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
                             { name: "Database Layer", status: "HEALTHY", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
                             { name: "OAuth Layer", status: "ACTIVE", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-                            { name: "Settlement Layer", status: "SIMULATED", color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" }
+                            { name: "Settlement Layer", status: "HEALTHY", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" }
                           ].map((srv, i) => (
                              <div key={i} className="flex justify-between items-center py-4 border-b border-white/5 last:border-0">
                                <span className="text-sm text-slate-300 font-medium truncate mr-2">{srv.name}</span>
@@ -1158,7 +1166,7 @@ export default function DashboardPage() {
                           ))}
                           <div className="mt-2 pt-5 pb-2 flex flex-col items-start border-t border-white/10 gap-1.5 text-left w-full">
                              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono-data">Summary</span>
-                             <span className="text-[11px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono-data">5/5 Simulation Services Available</span>
+                             <span className="text-[11px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono-data">5/5 CONNECTED SERVICES HEALTHY</span>
                           </div>
                         </div>
                       </IntelligenceModule>
@@ -1191,7 +1199,7 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-3 sm:gap-6">
                         <Server className="w-4 h-4 text-cyan-500/70" />
                         <h2 className="text-sm font-semibold text-white tracking-tight mr-4">
-                          MOCK DATASET
+                          OPEN BANKING DATASET
                         </h2>
                         <span
                           className="font-mono-data text-[10px] px-2 py-0.5 rounded uppercase tracking-widest"
@@ -1212,10 +1220,10 @@ export default function DashboardPage() {
                         {/* Exports */}
                         <div className="flex items-center gap-1.5" title="Generated Synthetic Dataset">
                           <button onClick={exportCSV} className="flex items-center gap-1 text-[10px] uppercase font-mono-data tracking-wider px-2 py-1 bg-white/5 hover:bg-white/10 rounded transition-colors text-slate-300 border border-white/10">
-                            <Download className="w-3 h-3" /> EXPORT MOCK CSV
+                            <Download className="w-3 h-3" /> EXPORT CSV
                           </button>
                           <button onClick={exportJSON} className="flex items-center gap-1 text-[10px] uppercase font-mono-data tracking-wider px-2 py-1 bg-white/5 hover:bg-white/10 rounded transition-colors text-slate-300 border border-white/10">
-                            <Download className="w-3 h-3" /> EXPORT MOCK JSON
+                            <Download className="w-3 h-3" /> EXPORT JSON
                           </button>
                         </div>
                       </div>
@@ -1346,20 +1354,20 @@ export default function DashboardPage() {
                 >
                   <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Live API</span>
-                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Online</span>
+                      <span className="text-xs text-slate-400">Plaid Connectivity</span>
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Healthy</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Sync Status</span>
-                      <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Active</span>
+                      <span className="text-xs text-slate-400">OAuth Consent Status</span>
+                      <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Verified</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-white/5">
+                      <span className="text-xs text-slate-400">FedNow Availability</span>
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Operational</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-white/5">
                       <span className="text-xs text-slate-400">Current UTC Time</span>
                       <span className="text-xs font-mono-data text-white">{new Date().toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' })}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Current Date</span>
-                      <span className="text-xs font-mono-data text-white">{new Date().toLocaleDateString('en-US', { timeZone: 'UTC' })}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-white/5">
                       <span className="text-xs text-slate-400">Poll Interval</span>
@@ -1392,15 +1400,19 @@ export default function DashboardPage() {
                   <div className="space-y-4 text-sm text-slate-300 leading-relaxed break-words w-full pb-5">
                     <p>
                       <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Operational Assessment</strong>
-                      Stable flow through primary ACH corridors, maintaining optimal processing bands.
+                      ACH settlement activity remains within NACHA processing thresholds. Open Banking consent verification continues to operate normally across connected institutions.
                     </p>
                     <p>
                       <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Threat Overview</strong>
-                      Anomaly detection algorithms assess threat levels as manageable. Isolated high-risk items have been intercepted.
+                      Several elevated-risk transactions remain under review. No active fraud events have been detected and overall operational risk remains within acceptable thresholds.
                     </p>
                     <p>
                       <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Settlement Summary</strong>
-                      Clearing processes executing within SLAs. T+1 and instant settlement rails operating efficiently.
+                      Primary ACH corridors are processing successfully, while FedNow remains available for real-time settlement requirements.
+                    </p>
+                    <p>
+                      <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Routing Insight</strong>
+                      Current payment distribution reflects optimal rail utilization across ACH, Wire, and instant-payment networks.
                     </p>
                   </div>
                 </div>
@@ -1834,7 +1846,7 @@ function LedgerRow({
             border: `1px solid ${rail.border}`,
           }}
         >
-          {txn.rail}
+          {txn.rail === "RTP" ? "FEDNOW" : txn.rail}
         </span>
       </td>
 

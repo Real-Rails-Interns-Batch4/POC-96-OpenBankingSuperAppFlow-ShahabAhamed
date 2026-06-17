@@ -222,7 +222,7 @@ export default function TransactionDrawer({
                           border: `1px solid ${rail.border}`,
                         }}
                       >
-                        {cachedTxn.rail}
+                        {cachedTxn.rail === "RTP" ? "FEDNOW" : cachedTxn.rail}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <div
@@ -320,7 +320,7 @@ export default function TransactionDrawer({
                     <p className="text-xs text-slate-500 mb-1">Routing Path</p>
                     <div className="flex items-center gap-1.5">
                       <Server className="w-3.5 h-3.5 text-cyan-500" />
-                      <span className="font-mono-data text-xs font-semibold text-white">{cachedTxn.rail}</span>
+                      <span className="font-mono-data text-xs font-semibold text-white">{cachedTxn.rail === "RTP" ? "FEDNOW" : cachedTxn.rail}</span>
                     </div>
                   </div>
                   <div className="p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>

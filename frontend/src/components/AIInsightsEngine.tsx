@@ -72,7 +72,7 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
       const pct = Math.round((topInstEntry[1] / totalAmount) * 100);
       result.push({
         category: "VOLUME",
-        text: `${topInstEntry[0]} accounts generate ${pct}% of routed volume.`,
+        text: `${topInstEntry[0]} contributes ${pct}% of active payment volume.`,
         color: "#A78BFA",
         Icon: Activity,
       });
@@ -87,14 +87,14 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
       
       result.push({
         category: "RISK",
-        text: `High-risk transactions concentrated in ${topRail} settlements.`,
+        text: `Elevated risk remains concentrated in ${topRail === "RTP" ? "FedNow" : topRail} transfers.`,
         color: "#F87171",
         Icon: AlertTriangle,
       });
     } else {
       result.push({
         category: "RISK",
-        text: `Risk profile nominal. No threats in active batch.`,
+        text: `Risk posture is nominal. No threat indicators detected.`,
         color: "#34D399",
         Icon: CheckCircle2,
       });
@@ -105,7 +105,7 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
     if (railCounts["WIRE"] > 0) {
       result.push({
         category: "ROUTING",
-        text: `WIRE used for same-day institutional settlement.`,
+        text: `Fedwire supports expedited institutional settlements.`,
         color: "#22D3EE",
         Icon: Zap,
       });
@@ -118,7 +118,7 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
          const rtpDiff = Math.round(((rtpCount - prevRtpCount) / prevRtpCount) * 100);
          result.push({
            category: "ROUTING",
-           text: `RTP routing ${rtpDiff >= 0 ? 'up' : 'down'} ${Math.abs(rtpDiff)}% vs previous interval.`,
+           text: `FedNow volume ${rtpDiff >= 0 ? 'increased' : 'decreased'} ${Math.abs(rtpDiff)}% vs previous cycles.`,
            color: "#22D3EE",
            Icon: rtpDiff >= 0 ? TrendingUp : TrendingDown,
          });
@@ -131,14 +131,14 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
     if (rate < 100) {
       result.push({
         category: "SETTLEMENT",
-        text: `${pendingCount} settlements pending final clearance.`,
+        text: `${pendingCount === 1 ? "1 settlement pending" : pendingCount + " settlements pending"} final confirmation.`,
         color: rate >= 70 ? "#34D399" : "#F59E0B",
         Icon: rate >= 70 ? CheckCircle2 : AlertTriangle,
       });
     } else {
       result.push({
         category: "SETTLEMENT",
-        text: "100% settlement clearance achieved.",
+        text: "Full clearance achieved across all connected institutions.",
         color: "#34D399",
         Icon: CheckCircle2,
       });

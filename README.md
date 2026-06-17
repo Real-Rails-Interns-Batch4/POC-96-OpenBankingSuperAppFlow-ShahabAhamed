@@ -13,6 +13,16 @@ GitHub: **shahabahmd**
 
 Open Banking Intelligence Rail is an enterprise-grade fintech intelligence dashboard that demonstrates how modern financial institutions orchestrate payment routing decisions across multiple banking rails.
 
+Data & Domain References
+
+• Open Banking UK Standards
+• Plaid API Documentation
+• Federal Reserve FedNow Service Documentation
+• NACHA Operating Rules
+
+This project uses domain-informed synthetic data and does not connect to live banking infrastructure.
+
+
 The platform combines:
 
 * Open Banking connectivity

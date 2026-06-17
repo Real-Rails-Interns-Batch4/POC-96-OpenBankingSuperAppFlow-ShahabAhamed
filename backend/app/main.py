@@ -37,28 +37,28 @@ _STATUSES = ["COMPLETED", "PENDING", "PROCESSING"]
 
 def compute_routing(amount: float, risk_score: int, priority: str) -> tuple[str, str]:
     if amount >= 50000:
-        return "WIRE", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+        return "WIRE", "HIGH" if risk_score >= 70 else "MEDIUM" if risk_score >= 40 else "LOW"
     elif amount >= 10000:
-        return "WIRE", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+        return "WIRE", "HIGH" if risk_score >= 70 else "MEDIUM" if risk_score >= 40 else "LOW"
     elif priority == "URGENT" and risk_score < 55:
-        return "RTP", "MEDIUM" if risk_score >= 35 else "LOW"
+        return "RTP", "MEDIUM" if risk_score >= 40 else "LOW"
     elif risk_score >= 70:
         return "WIRE", "HIGH"
     elif priority == "BATCH":
-        return "ACH", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+        return "ACH", "HIGH" if risk_score >= 70 else "MEDIUM" if risk_score >= 40 else "LOW"
     elif priority == "URGENT" and risk_score >= 55:
-        return "RTP", "HIGH" if risk_score >= 65 else "MEDIUM"
+        return "RTP", "HIGH" if risk_score >= 70 else "MEDIUM"
     else:
-        return "ACH", "HIGH" if risk_score >= 65 else "MEDIUM" if risk_score >= 35 else "LOW"
+        return "ACH", "HIGH" if risk_score >= 70 else "MEDIUM" if risk_score >= 40 else "LOW"
 
 def _generate_transaction() -> dict:
     val = random.random()
     if val < 0.60:
-        risk_score = random.randint(20, 34)
-    elif val < 0.85:
-        risk_score = random.randint(35, 64)
+        risk_score = random.randint(20, 39)
+    elif val < 0.92:
+        risk_score = random.randint(40, 69)
     else:
-        risk_score = random.randint(65, 94)
+        risk_score = random.randint(70, 94)
 
     # Some high amounts to trigger wire rules
     amt_val = random.random()

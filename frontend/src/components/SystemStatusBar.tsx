@@ -1,21 +1,21 @@
 function getServiceStatus(sourceState: "LIVE_API" | "MOCK_MODE" | "OFFLINE_FALLBACK", name: string) {
   if (sourceState === "LIVE_API") {
     switch (name) {
-      case "Connected Banks":     return { status: "Operational", desc: "12ms", uptime: "99.98%", color: "dot-emerald", textColor: "text-emerald-400" };
-      case "Consent Layer":       return { status: "Healthy",     desc: "34ms", uptime: "99.94%", color: "dot-cyan",    textColor: "text-cyan-400" };
-      case "Risk Screening":      return { status: "Active",      desc: "8ms",  uptime: "100%",   color: "dot-emerald", textColor: "text-emerald-400" };
-      case "Rail Routing":        return { status: "Stable",      desc: "47ms", uptime: "99.91%", color: "dot-amber",   textColor: "text-amber-400" };
-      case "Settlement Status":   return { status: "Connected",   desc: "5ms",  uptime: "99.99%", color: "dot-emerald", textColor: "text-emerald-400" };
+      case "Open Banking Connectivity": return { status: "Healthy",     desc: "12ms", uptime: "99.98%", color: "dot-emerald", textColor: "text-emerald-400" };
+      case "Consent Verification":      return { status: "Active",      desc: "34ms", uptime: "99.94%", color: "dot-cyan",    textColor: "text-cyan-400" };
+      case "FedNow Availability":       return { status: "Operational", desc: "8ms",  uptime: "100%",   color: "dot-emerald", textColor: "text-emerald-400" };
+      case "ACH Settlement Window":     return { status: "Open",        desc: "47ms", uptime: "99.91%", color: "dot-amber",   textColor: "text-amber-400" };
+      case "OAuth Authorization":       return { status: "Verified",    desc: "5ms",  uptime: "99.99%", color: "dot-emerald", textColor: "text-emerald-400" };
     }
   }
 
   // MOCK or OFFLINE fallback
   switch (name) {
-    case "Connected Banks":     return { status: "SIMULATED",       desc: "Simulated institutional links", uptime: null, color: "dot-amber", textColor: "text-amber-400" };
-    case "Consent Layer":       return { status: "MOCK ACTIVE",     desc: "Mock OAuth 2.0 flow",           uptime: null, color: "dot-amber", textColor: "text-amber-400" };
-    case "Risk Screening":      return { status: "SIMULATED",       desc: "Synthetic anomaly detection",   uptime: null, color: "dot-amber", textColor: "text-amber-400" };
-    case "Rail Routing":        return { status: "SIMULATION MODE", desc: "Simulated routing logic",       uptime: null, color: "dot-amber", textColor: "text-amber-400" };
-    case "Settlement Status":   return { status: "SIMULATED",       desc: "Simulated T+1 clearance",       uptime: null, color: "dot-amber", textColor: "text-amber-400" };
+    case "Open Banking Connectivity": return { status: "SIMULATED",       desc: "Simulated institutional links", uptime: null, color: "dot-amber", textColor: "text-amber-400" };
+    case "Consent Verification":      return { status: "MOCK ACTIVE",     desc: "Mock OAuth 2.0 flow",           uptime: null, color: "dot-amber", textColor: "text-amber-400" };
+    case "FedNow Availability":       return { status: "SIMULATED",       desc: "Synthetic real-time rail",      uptime: null, color: "dot-amber", textColor: "text-amber-400" };
+    case "ACH Settlement Window":     return { status: "SIMULATION MODE", desc: "Simulated clearance window",    uptime: null, color: "dot-amber", textColor: "text-amber-400" };
+    case "OAuth Authorization":       return { status: "SIMULATED",       desc: "Mock verified state",           uptime: null, color: "dot-amber", textColor: "text-amber-400" };
   }
   return { status: "UNKNOWN", desc: "Unknown state", uptime: null, color: "dot-amber", textColor: "text-amber-400" };
 }
@@ -25,7 +25,7 @@ interface SystemStatusBarProps {
 }
 
 export default function SystemStatusBar({ sourceState }: SystemStatusBarProps) {
-  const systemNames = ["Connected Banks", "Consent Layer", "Risk Screening", "Rail Routing", "Settlement Status"];
+  const systemNames = ["Open Banking Connectivity", "Consent Verification", "FedNow Availability", "ACH Settlement Window", "OAuth Authorization"];
   
   const systems = systemNames.map(name => ({
     name,

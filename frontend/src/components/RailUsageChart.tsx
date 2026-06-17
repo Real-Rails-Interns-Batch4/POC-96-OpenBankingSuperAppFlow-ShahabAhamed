@@ -8,11 +8,10 @@ import {
   Tooltip,
 } from "recharts";
 
-import { Transaction } from "@/types/transaction";
-import { calculateMetrics } from "@/lib/metrics";
-
 interface RailUsageChartProps {
-  transactions: Transaction[];
+  railCounts: Record<string, number>;
+  railPercentages: Record<string, number>;
+  totalTxns: number;
 }
 
 const RAIL_COLORS: Record<string, { fill: string; text: string }> = {
@@ -51,9 +50,10 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 }
 
 export default function RailUsageChart({
-  transactions,
+  railCounts,
+  railPercentages,
+  totalTxns
 }: RailUsageChartProps) {
-  const { railCounts, railPercentages, totalTxns } = calculateMetrics(transactions);
 
   const data = Object.entries(railCounts).map(([name, value]) => ({
     name,

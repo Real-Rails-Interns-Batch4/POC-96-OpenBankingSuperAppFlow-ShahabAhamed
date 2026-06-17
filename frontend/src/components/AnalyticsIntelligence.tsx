@@ -56,19 +56,19 @@ export default function AnalyticsIntelligence({
           <li className="flex items-start gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(167,139,250,0.6)]" />
             <p className="text-sm text-slate-300 leading-relaxed">
-              <span className="text-white font-semibold">ACH</span> remained the dominant settlement corridor, processing <span className="font-mono-data text-purple-400 font-semibold">{achPct}%</span> of total volume and demonstrating stable routing efficiency.
+              <span className="text-white font-semibold">ACH settlement activity</span> remains within expected NACHA processing thresholds, capturing <span className="font-mono-data text-purple-400 font-semibold">{achPct}%</span> of total volume.
             </p>
           </li>
           <li className="flex items-start gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
             <p className="text-sm text-slate-300 leading-relaxed">
-              Network security models sustained high efficacy, with <span className="font-mono-data text-emerald-400 font-semibold">{lowRiskPct}%</span> of transactions clearing low-risk thresholds and requiring zero manual intervention.
+              <span className="text-white font-semibold">Transaction monitoring systems</span> report no elevated fraud indicators across active corridors, with <span className="font-mono-data text-emerald-400 font-semibold">{lowRiskPct}%</span> clearing standard automated verification.
             </p>
           </li>
           <li className="flex items-start gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
             <p className="text-sm text-slate-300 leading-relaxed">
-              Expedited corridors like <span className="text-white font-semibold">RTP</span> successfully absorbed high-priority settlement demands without introducing systemic latency.
+              <span className="text-white font-semibold">Settlement latency</span> remains within established service-level objectives for all expedited routing corridors including <span className="text-white font-semibold">RTP</span> and Wire endpoints.
             </p>
           </li>
         </ul>

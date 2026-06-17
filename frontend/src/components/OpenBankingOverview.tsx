@@ -21,11 +21,11 @@ const INSTITUTIONS = [
     name: "Bank of America",
     initials: "B",
     color: "#34D399",
-    consentStatus: "Expiring Soon",
+    consentStatus: "Consent Renewal Required",
     expiryDate: "2024-07-15",
     accounts: ["Checking", "Investment"],
     lastSync: "5 min ago",
-    syncHealth: "Healthy" as const,
+    syncHealth: "Degraded" as const,
     balance: "$8,920.50",
     apiVersion: "OBP 3.1",
   },
@@ -37,7 +37,7 @@ const INSTITUTIONS = [
     expiryDate: "2025-10-08",
     accounts: ["Checking", "Savings", "Credit", "Investment"],
     lastSync: "8 min ago",
-    syncHealth: "Degraded" as const,
+    syncHealth: "Healthy" as const,
     balance: "$18,750.00",
     apiVersion: "FDX 4.1",
   },
@@ -76,7 +76,7 @@ export default function OpenBankingOverview({ connectedBanksCount }: OpenBanking
       >
         <div>
           <h3 className="text-white font-semibold text-sm leading-none flex items-center gap-2">
-            Connected Institutions
+            Connected Financial Institutions
             <span className="font-mono-data text-[10px] text-cyan-500/80 uppercase tracking-widest px-1.5 py-0.5 rounded bg-cyan-500/10">
               OAuth 2.0 / FDX
             </span>
@@ -144,7 +144,7 @@ export default function OpenBankingOverview({ connectedBanksCount }: OpenBanking
             <div className="w-10 h-10 rounded-full flex items-center justify-center mb-3" style={{ background: "rgba(255,255,255,0.03)" }}>
               <RefreshCw className="w-5 h-5 text-slate-500" />
             </div>
-            <p className="text-sm font-medium text-slate-300">No connected institutions</p>
+            <p className="text-sm font-medium text-slate-300">No connected financial institutions</p>
             <p className="text-xs text-slate-500 mt-1 max-w-[200px]">Awaiting active gateway synchronization to display open banking links.</p>
           </div>
         ) : (
@@ -179,9 +179,9 @@ export default function OpenBankingOverview({ connectedBanksCount }: OpenBanking
                         <span
                           className="font-mono-data text-[8px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded"
                           style={{
-                            color: inst.consentStatus === "Expiring Soon" ? "#F59E0B" : "#34D399",
-                            background: inst.consentStatus === "Expiring Soon" ? "rgba(245,158,11,0.1)" : "rgba(52,211,153,0.1)",
-                            border: `1px solid ${inst.consentStatus === "Expiring Soon" ? "rgba(245,158,11,0.2)" : "rgba(52,211,153,0.2)"}`
+                            color: inst.consentStatus === "Consent Renewal Required" ? "#F59E0B" : inst.consentStatus === "Action Required" ? "#F87171" : "#34D399",
+                            background: inst.consentStatus === "Consent Renewal Required" ? "rgba(245,158,11,0.1)" : inst.consentStatus === "Action Required" ? "rgba(248,113,113,0.1)" : "rgba(52,211,153,0.1)",
+                            border: `1px solid ${inst.consentStatus === "Consent Renewal Required" ? "rgba(245,158,11,0.2)" : inst.consentStatus === "Action Required" ? "rgba(248,113,113,0.2)" : "rgba(52,211,153,0.2)"}`
                           }}
                         >
                           {inst.consentStatus}

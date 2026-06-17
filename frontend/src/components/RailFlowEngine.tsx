@@ -50,7 +50,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
           color: "#A78BFA",
           bg: "rgba(167,139,250,0.06)",
           border: "rgba(167,139,250,0.18)",
-          settlementSublabel: "Same Day · FedWire",
+          settlementSublabel: "Same-Day Settlement",
           whyItMatters: [
             "Same-day finality",
             "Best for high-value transfers",
@@ -72,7 +72,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
           color: "#34D399",
           bg: "rgba(52,211,153,0.06)",
           border: "rgba(52,211,153,0.18)",
-          settlementSublabel: "Real-Time · TCH",
+          settlementSublabel: "Real-Time Settlement",
           whyItMatters: [
             "Instant settlement",
             "24/7 availability",
@@ -94,7 +94,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
           color: "#06B6D4",
           bg: "rgba(6,182,212,0.06)",
           border: "rgba(6,182,212,0.18)",
-          settlementSublabel: "T+1 · FedNow",
+          settlementSublabel: "T+1 Business Day",
           whyItMatters: [
             "Lowest processing cost",
             "Suitable for standard settlement",
@@ -117,7 +117,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
   const PIPELINE_NODES = [
     {
       id: "bank",
-      label: "Connected Bank",
+      label: "Connected Financial Institution",
       value: "Chase",
       sublabel: "Primary Institution",
       status: "ACTIVE",
@@ -132,7 +132,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
     },
     {
       id: "consent",
-      label: "Consent Layer",
+      label: "Open Banking Consent Service",
       value: "Approved",
       sublabel: "OAuth 2.0 · Plaid",
       status: "VERIFIED",
@@ -162,7 +162,7 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
     },
     {
       id: "rail",
-      label: "Rail Selected",
+      label: "Payment Rail Decision",
       value: railConfig.value,
       sublabel: railConfig.sublabel,
       status: "ROUTING",

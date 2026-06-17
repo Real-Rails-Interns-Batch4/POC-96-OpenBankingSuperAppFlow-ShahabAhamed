@@ -66,7 +66,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
     <div
       className="rounded-xl overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
+        background: "linear-gradient(135deg, #030712 0%, #081120 100%)",
         border: "1px solid rgba(255,255,255,0.05)",
         boxShadow: "var(--shadow-card)",
       }}
@@ -82,7 +82,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
       >
         <div className="flex items-center gap-3">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{
               background: "rgba(167,139,250,0.1)",
               border: "1px solid rgba(167,139,250,0.2)",
@@ -92,7 +92,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
           </div>
           <div>
             <p className="font-mono-data text-[9px] uppercase tracking-widest mb-0.5 text-purple-400/70">
-              SIMULATION MODE · GENERATED FROM SYNTHETIC DATASET
+              AI ROUTING SIMULATION · DECISION INTELLIGENCE ENGINE
             </p>
             <h3 className="text-white font-semibold text-base leading-none">
               Payment Routing Simulator
@@ -108,7 +108,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
           }}
         >
           <div className="w-1.5 h-1.5 rounded-full bg-purple-400" style={{ animation: "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite" }} />
-          REAL-TIME
+          INTERACTIVE
         </div>
       </div>
 
@@ -134,7 +134,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
                 onChange={(e) =>
                   setInput((p) => ({ ...p, amount: Number(e.target.value) || 0 }))
                 }
-                className="w-full font-mono-data text-sm text-white pl-7 pr-4 py-2 rounded-lg outline-none"
+                className="w-full font-mono-data text-sm text-white pl-7 pr-4 py-2 rounded outline-none"
                 style={{
                   background: "rgba(255,255,255,0.04)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -175,7 +175,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               onChange={(e) =>
                 setInput((p) => ({ ...p, institution: e.target.value }))
               }
-              className="w-full text-sm text-white px-3 py-2 rounded-lg outline-none appearance-none cursor-pointer"
+              className="w-full text-sm text-white px-3 py-2 rounded outline-none appearance-none cursor-pointer"
               style={{
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.08)",
@@ -235,7 +235,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
                 <button
                   key={p}
                   onClick={() => setInput((prev) => ({ ...prev, priority: p }))}
-                  className="py-2 rounded-lg font-mono-data text-[10px] font-semibold uppercase tracking-wider transition-all duration-150"
+                  className="py-2 rounded font-mono-data text-[10px] font-semibold uppercase tracking-wider transition-all duration-150"
                   style={{
                     background:
                       input.priority === p
@@ -261,7 +261,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               SIMULATION IMPACT PREVIEW
             </p>
             <div
-              className="p-3.5 rounded-xl flex flex-col gap-2.5"
+              className="p-3.5 rounded-lg flex flex-col gap-2.5"
               style={{
                 background: "rgba(255,255,255,0.02)",
                 border: "1px solid rgba(255,255,255,0.05)",
@@ -284,13 +284,13 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               <div className="flex justify-between items-center">
                 <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Review Probability</span>
                 <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">
-                  {result.reviewProbability.replace(" (Auto-Clear)", "").replace(" (Manual Review)", "")}
+                  {result.reviewProbability.replace(" (Auto-Clear)", " (Straight Through Processing)").replace(" (Manual Review)", " (Manual Review)")}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Compliance Status</span>
                 <span className="font-mono-data text-[10px] font-semibold text-slate-300 text-right">
-                  {result.complianceRisk === "Standard" ? "Approved" : result.complianceRisk}
+                  {result.complianceRisk === "Standard" ? "NACHA Compliant" : result.complianceRisk}
                 </span>
               </div>
               
@@ -298,7 +298,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
               
               <div className="flex justify-between items-center">
                 <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Recommended Rail</span>
-                <span className="font-mono-data text-[11px] font-bold text-right" style={{ color: railStyle.color }}>{result.rail}</span>
+                <span className="font-mono-data text-[11px] font-bold text-right" style={{ color: railStyle.color }}>{result.rail === "RTP" ? "FEDNOW" : result.rail}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-mono-data text-[9px] text-slate-500 uppercase tracking-wider">Success Rate</span>
@@ -317,7 +317,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
 
           {/* Rail hero */}
           <div
-            className="p-3.5 rounded-xl mb-3 transition-all duration-300 relative overflow-hidden"
+            className="p-3.5 rounded-lg mb-3 transition-all duration-300 relative overflow-hidden"
             style={{
               background: railStyle.bg,
               border: `1px solid ${railStyle.border}`,
@@ -348,7 +348,7 @@ export default function RoutingSimulator({ onResultChange }: RoutingSimulatorPro
                 letterSpacing: "-0.02em",
               }}
             >
-              {result.rail}
+              {result.rail === "RTP" ? "FEDNOW" : result.rail}
             </p>
             {/* Confidence bar */}
             <div>

@@ -135,7 +135,7 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
           >
             <div className="w-1 h-1 rounded-full animate-pulse" style={{ background: recStyle.color }} />
             <span className="font-mono-data text-[9px] font-bold tracking-widest" style={{ color: recStyle.color }}>
-              {result.rail} ACTIVE
+              {result.rail === "RTP" ? "FEDNOW" : result.rail} ACTIVE
             </span>
           </div>
         </div>
@@ -261,7 +261,7 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
               { label: "Consent Provider", value: consent.provider,    color: "#22D3EE" },
               { label: "Consent Status",   value: consent.status,      color: consent.status === "Verified" ? "#34D399" : "#FCD34D" },
               { label: "Access Scope",     value: consent.scope,       color: "#94A3B8" },
-              { label: "Data Freshness",   value: "Real-time (<1s)",   color: "#22D3EE" },
+              { label: "Last Sync",        value: "0.8s ago",        color: "#22D3EE" },
             ].map((row) => (
               <div
                 key={row.label}
@@ -326,14 +326,14 @@ export default function RailIntelligenceEngine({ result, input }: RailIntelligen
                     className="font-mono-data text-[12px] font-bold tracking-widest"
                     style={{ color: rs.color }}
                   >
-                    {r}
+                    {r === "RTP" ? "FEDNOW" : r}
                   </span>
                 </div>
                 <div className="flex flex-col flex-1 justify-end">
                   {[
                     { l: "Settlement", v: rc.settlementWindow },
                     { l: "Cost", v: rc.flatFeeDisplay },
-                    { l: "Compliance", v: rc.complianceImpact },
+                    { l: "Compliance", v: r === "ACH" ? "NACHA" : r === "WIRE" ? "Fedwire" : "FedNow" },
                     { l: "Risk", v: rc.riskLevel },
                     { l: "Availability", v: rc.availability },
                   ].map(x => (

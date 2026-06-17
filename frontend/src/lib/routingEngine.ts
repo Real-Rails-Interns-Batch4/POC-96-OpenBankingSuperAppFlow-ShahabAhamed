@@ -69,7 +69,11 @@ export function computeRouting(input: SimInput): SimResult {
     rail = "ACH";
     rawConfidence = 91.2 + (50 - riskScore) / 10 + (amount < 2000 ? 2.3 : -1.1);
     reasoning = `Standard transaction with low-moderate risk (${riskScore}) routes optimally via ACH. Cost-efficient NACHA batch settlement with proven reliability across domestic payment infrastructure.`;
-    factors = ["Standard priority — ACH default", `Risk score ${riskScore} — within ACH policy`, "Cost-optimal routing"];
+    factors = [
+      "Transaction value falls within ACH routing threshold",
+      `Risk score ${riskScore} satisfies automated settlement policy`,
+      "ACH provides lowest processing cost with acceptable settlement window",
+    ];
   }
 
   const confidence = Math.min(99.9, Math.max(0.1, rawConfidence));
@@ -82,7 +86,7 @@ export function computeRouting(input: SimInput): SimResult {
 
   const costEstimate = RAIL_CONFIG[rail].flatFeeRange;
 
-  const reviewProbability = riskScore > 80 ? "High (Manual Review)" : riskScore > 50 ? "Moderate" : "Low (Auto-Clear)";
+  const reviewProbability = riskScore > 80 ? "High (Manual Review)" : riskScore > 50 ? "Moderate" : "Low (Straight Through Processing)";
   const complianceRisk = amount > 10000 ? "Elevated (BSA/AML)" : "Standard";
 
   return {
