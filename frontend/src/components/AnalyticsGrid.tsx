@@ -4,6 +4,7 @@ import TransactionTimeline from "@/components/TransactionTimeline";
 import AnalyticsIntelligence from "@/components/AnalyticsIntelligence";
 
 import { Transaction } from "@/types/transaction";
+import { calculateMetrics } from "@/lib/metrics";
 import { TelemetrySnapshot } from "../../app/page";
 
 interface AnalyticsGridProps {
@@ -14,6 +15,7 @@ interface AnalyticsGridProps {
 export default function AnalyticsGrid({
   transactions,
 }: AnalyticsGridProps) {
+  const { railCounts, railPercentages, totalTxns } = calculateMetrics(transactions);
   return (
     <div className="space-y-6">
 
@@ -34,7 +36,7 @@ export default function AnalyticsGrid({
       {/* Top Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="min-w-0">
-          <RailUsageChart transactions={transactions} />
+          <RailUsageChart railCounts={railCounts} railPercentages={railPercentages} totalTxns={totalTxns} />
         </div>
         <div className="min-w-0">
           <RiskDistributionChart transactions={transactions} />

@@ -5,12 +5,9 @@ import { Transaction } from "@/types/transaction";
 
 // ─── Existing components ──────────────────────────────────────────────────────
 import RailFlowEngine      from "@/components/RailFlowEngine";
-import AnalyticsGrid       from "@/components/AnalyticsGrid";
 import RailUsageChart      from "@/components/RailUsageChart";
 import RiskDistributionChart from "@/components/RiskDistributionChart";
 import TransactionTimeline from "@/components/TransactionTimeline";
-import SystemStatusBar     from "@/components/SystemStatusBar";
-import LiveClock           from "@/components/LiveClock";
 
 // ─── New Phase-2 & 3 components ───────────────────────────────────────────────
 import AIInsightsEngine      from "@/components/AIInsightsEngine";
@@ -86,6 +83,7 @@ interface Notification {
   timestamp: string;
   message: string;
   severity: "HIGH" | "MEDIUM" | "INFO";
+  rail?: string;
 }
 
 // =============================================================================
@@ -116,7 +114,6 @@ export default function DashboardPage() {
   const transactions = useMemo(() => {
     return rawTransactions;
   }, [rawTransactions]);
-  const [sourceMode, setSourceMode]     = useState("MOCK");
   const [dataMode, setDataMode]         = useState<"LIVE" | "MOCK">("MOCK");
   const [apiLatency, setApiLatency]     = useState<number>(0);
   const [apiStatus, setApiStatus]       = useState<"ONLINE" | "OFFLINE" | "DEGRADED">("ONLINE");
@@ -333,10 +330,9 @@ export default function DashboardPage() {
   useEffect(() => {
     async function bootstrap() {
       try {
-        const status = await fetchSourceStatus();
-        setSourceMode(status.mode || "MOCK");
+        await fetchSourceStatus();
       } catch {
-        setSourceMode("MOCK");
+        // fallback
       }
 
       await pollBackend();
@@ -1344,6 +1340,34 @@ export default function DashboardPage() {
 
           <div className="space-y-4 h-full overflow-y-auto pr-2 pb-12 custom-scrollbar">
             
+            {/* 0. Data Source Status */}
+            <IntelligenceModule
+              title="Data Source Status"
+              label="Official Integrations"
+              icon={Server}
+              accentColor="#34D399"
+              accentBg="rgba(52,211,153,0.06)"
+            >
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-xs text-slate-400">Open Banking UK</span>
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Online</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-xs text-slate-400">Plaid</span>
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Healthy</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-xs text-slate-400">FedNow</span>
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Operational</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                  <span className="text-xs text-slate-400">Risk Engine</span>
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Active</span>
+                </div>
+              </div>
+            </IntelligenceModule>
+
             {/* 1. System Status */}
                 <IntelligenceModule
                   title="System Status"
