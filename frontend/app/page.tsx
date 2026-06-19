@@ -1340,30 +1340,33 @@ export default function DashboardPage() {
 
           <div className="space-y-4 h-full overflow-y-auto pr-2 pb-12 custom-scrollbar">
             
-            {/* 0. Data Source Status */}
+            {/* 0. Ingested Intelligence Sources */}
             <IntelligenceModule
-              title="Data Source Status"
-              label="Official Integrations"
-              icon={Server}
-              accentColor="#34D399"
-              accentBg="rgba(52,211,153,0.06)"
+              title="Ingested Intelligence Sources"
+              label="Data Sources Consumed"
+              icon={Brain}
+              accentColor="#8B5CF6"
+              accentBg="rgba(139,92,246,0.06)"
             >
               <div className="flex flex-col gap-3">
+                <p className="text-[11px] text-slate-400 mb-1 leading-relaxed">
+                  These authoritative sources actively power the intelligence engine and dynamic routing decisions.
+                </p>
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-xs text-slate-400">Open Banking UK</span>
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Online</span>
+                  <span className="text-xs font-medium text-slate-300">Open Banking UK Standards</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-xs text-slate-400">Plaid</span>
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Healthy</span>
+                  <span className="text-xs font-medium text-slate-300">Plaid Documentation</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-xs text-slate-400">FedNow</span>
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Operational</span>
+                  <span className="text-xs font-medium text-slate-300">FedNow Service Documentation</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-white/5">
-                  <span className="text-xs text-slate-400">Risk Engine</span>
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Active</span>
+                  <span className="text-xs font-medium text-slate-300">Internal Risk Engine</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
                 </div>
               </div>
             </IntelligenceModule>
