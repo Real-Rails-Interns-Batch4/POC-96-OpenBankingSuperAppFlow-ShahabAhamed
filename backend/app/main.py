@@ -143,3 +143,7 @@ def get_transactions():
         "source_mode": "LIVE",
         "transactions": _transactions,
     }
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "healthy"}

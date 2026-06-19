@@ -21,7 +21,7 @@ import { computeRouting } from "@/lib/routingEngine";
 import { calculateMetrics } from "@/lib/metrics";
 
 // ─── APIs ─────────────────────────────────────────────────────────────────────
-import { fetchTransactions, fetchSourceStatus } from "@/lib/api";
+import { fetchTransactions, fetchSourceStatus, checkBackendHealth } from "@/lib/api";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 import {
@@ -176,6 +176,7 @@ export default function DashboardPage() {
   async function pollBackend() {
     const start = performance.now();
     try {
+      await checkBackendHealth();
       const data = await fetchTransactions();
       const latency = Math.round(performance.now() - start);
       setApiLatency(latency);

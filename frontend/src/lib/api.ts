@@ -47,4 +47,17 @@ export async function fetchSourceStatus() {
       provider: "Fallback Feed",
     };
   }
-}
+}
+
+export async function checkBackendHealth() {
+  if (!API_BASE_URL) {
+    throw new Error("NEXT_PUBLIC_API_URL is not configured");
+  }
+  const response = await fetch(`${API_BASE_URL}/api/health`, {
+    next: { revalidate: 0 }
+  });
+  if (!response.ok) {
+    throw new Error(`Health check failed: ${response.status}`);
+  }
+  return await response.json();
+}
