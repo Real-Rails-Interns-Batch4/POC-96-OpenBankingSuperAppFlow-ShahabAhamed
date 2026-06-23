@@ -49,9 +49,10 @@ const ALL_ACCOUNT_TYPES = ["Checking", "Savings", "Credit", "Investment"];
 
 interface OpenBankingOverviewProps {
   connectedBanksCount?: number;
+  onSidebarTrigger?: (context: any) => void;
 }
 
-export default function OpenBankingOverview({ connectedBanksCount }: OpenBankingOverviewProps) {
+export default function OpenBankingOverview({ connectedBanksCount, onSidebarTrigger }: OpenBankingOverviewProps) {
   const linkedBanks = connectedBanksCount ?? INSTITUTIONS.length;
   const allCoveredTypes = [
     ...new Set(INSTITUTIONS.flatMap((i) => i.accounts)),
@@ -153,7 +154,8 @@ export default function OpenBankingOverview({ connectedBanksCount }: OpenBanking
               {INSTITUTIONS.map((inst, i) => (
                 <div
                   key={i}
-                  className="px-4 py-2.5 rounded-lg transition-all duration-150 hover:bg-white/[0.03] flex items-center gap-4"
+                  onClick={() => onSidebarTrigger?.({ type: "INSTITUTION", id: inst.name, data: inst })}
+                  className="px-4 py-2.5 rounded-lg transition-all duration-150 hover:bg-white/[0.03] flex items-center gap-4 cursor-pointer hover:scale-[1.01]"
                   style={{
                     background: "rgba(255,255,255,0.015)",
                     border: "1px solid rgba(255,255,255,0.04)",

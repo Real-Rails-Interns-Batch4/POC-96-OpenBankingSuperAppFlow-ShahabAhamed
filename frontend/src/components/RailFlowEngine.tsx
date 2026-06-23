@@ -38,9 +38,10 @@ function FlowConnector({ glowColor }: { glowColor: string }) {
 
 interface RailFlowEngineProps {
   activeRail?: string;
+  onSidebarTrigger?: (context: any) => void;
 }
 
-export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEngineProps) {
+export default function RailFlowEngine({ activeRail = "ACH", onSidebarTrigger }: RailFlowEngineProps) {
   const getRailConfig = (rail: string) => {
     switch (rail) {
       case "WIRE":
@@ -230,7 +231,8 @@ export default function RailFlowEngine({ activeRail = "ACH" }: RailFlowEnginePro
             const elements = [
               <div
                 key={`${node.id}-node`}
-                className={`premium-card-secondary flex-1 min-w-[150px] max-w-[220px] rounded-lg p-3 flex flex-col justify-center gap-1.5 cursor-default relative ${node.id === "rail" ? "animate-pulse" : ""}`}
+                onClick={() => onSidebarTrigger?.({ type: "NODE", id: node.id, data: node })}
+                className={`premium-card-secondary flex-1 min-w-[150px] max-w-[220px] rounded-lg p-3 flex flex-col justify-center gap-1.5 cursor-pointer hover:scale-[1.02] transition-transform relative ${node.id === "rail" ? "animate-pulse" : ""}`}
                 style={{
                   background: node.accentBg,
                   border: `1px solid ${node.accentBorder}`,

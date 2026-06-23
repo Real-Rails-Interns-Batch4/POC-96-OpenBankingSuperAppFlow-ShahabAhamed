@@ -23,6 +23,10 @@ import { calculateMetrics } from "@/lib/metrics";
 // ─── APIs ─────────────────────────────────────────────────────────────────────
 import { fetchTransactions, fetchSourceStatus, checkBackendHealth } from "@/lib/api";
 
+import { motion, AnimatePresence } from "framer-motion";
+import SidebarContent, { SidebarContextData } from "@/components/SidebarContent";
+import IntelligenceModule from "@/components/IntelligenceModule";
+
 // ─── Icons ────────────────────────────────────────────────────────────────────
 import {
   Activity,
@@ -34,6 +38,7 @@ import {
   Clock,
   CreditCard,
   Download,
+  Info,
   Percent,
   Server,
   ShieldAlert,
@@ -43,6 +48,7 @@ import {
   TrendingUp,
   Wifi,
   WifiOff,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -137,6 +143,27 @@ export default function DashboardPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Cinematic Interface State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarContext, setSidebarContext] = useState<SidebarContextData | null>(null);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+
+  const openSidebarWithContext = useCallback((context: SidebarContextData) => {
+    setSidebarContext(context);
+    setIsSidebarOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSidebarOpen(false);
+        setIsInfoModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Derived Source State
   let sourceState: "LIVE_API" | "MOCK_MODE" | "OFFLINE_FALLBACK" = "MOCK_MODE";
@@ -531,16 +558,16 @@ export default function DashboardPage() {
       <div className="relative z-10 w-full flex-1 min-h-0 flex flex-col max-w-[1680px] mx-auto px-4 py-4 md:px-8 md:py-6 lg:px-10 lg:py-8">
 
         {/* ====================================================================
-            70/30 GRID LAYOUT - Full page container
+            FULL WIDTH CINEMATIC STAGE - Main Layout
         ==================================================================== */}
 
-        <div className="grid grid-cols-[70%_30%] gap-8 flex-1 min-h-0 h-full overflow-hidden" style={{ borderRight: "none" }}>
+        <div className="flex-1 min-h-0 h-full overflow-hidden w-full relative">
 
           {/* ════════════════════════════════════════════════════════════════
-              LEFT COLUMN (70%) - Main Operational Workspace
+              MAIN COLUMN (100%) - Main Operational Workspace
           ════════════════════════════════════════════════════════════════ */}
 
-          <div className="space-y-12 h-full overflow-y-auto pr-2 pb-12 custom-scrollbar">
+          <div className="space-y-12 h-full overflow-y-auto pr-2 pb-12 custom-scrollbar w-full">
 
             {/* ════════════════════════════════════════════════════════════
                 1. PAGE HEADER
@@ -568,7 +595,7 @@ export default function DashboardPage() {
                         className="text-2xl md:text-3xl font-bold text-white tracking-tight leading-none"
                         style={{ fontFamily: "Inter, sans-serif", letterSpacing: "-0.025em" }}
                       >
-                        Open Banking Intelligence Rail
+                        Infocreon Internship – Open Banking Intelligence Rail
                       </h1>
                       <div className="hidden sm:flex items-center gap-2 px-2 py-0.5 rounded-full" style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)" }}>
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -606,6 +633,12 @@ export default function DashboardPage() {
                       {unreadNotifications > 0 && (
                         <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                       )}
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setIsInfoModalOpen(true); }}
+                      className="relative p-2 rounded-lg transition-colors hover:bg-slate-800"
+                    >
+                      <Info className="w-5 h-5 text-slate-400" />
                     </button>
 
                     {/* Dropdown */}
@@ -851,6 +884,7 @@ export default function DashboardPage() {
                       accentColor={threatLevel === "CRITICAL" || threatLevel === "ELEVATED" ? "#EF4444" : threatLevel === "MODERATE" ? "#F59E0B" : "#10B981"}
                       trend="neutral"
                       alert={threatLevel === "CRITICAL" || threatLevel === "ELEVATED"}
+                      onClick={() => openSidebarWithContext({ type: "KPI", id: "Threat Level" })}
                     />
                   </div>
                 </div>
@@ -865,20 +899,20 @@ export default function DashboardPage() {
                       border: "1px solid rgba(255,255,255,0.05)",
                     }}
                   >
-                    <AIInsightsEngine transactions={transactions} previousTransactions={previousTransactions} />
+                    <AIInsightsEngine transactions={transactions} previousTransactions={previousTransactions} onSidebarTrigger={openSidebarWithContext} />
                   </div>
                 </div>
 
                 {/* 3. Connected Institutions */}
                 <div>
                   <SectionHeader label="Connected Institutions" />
-                  <OpenBankingOverview connectedBanksCount={connectedBanks} />
+                  <OpenBankingOverview connectedBanksCount={connectedBanks} onSidebarTrigger={openSidebarWithContext} />
                 </div>
 
                 {/* 4. Payment Flow Intelligence */}
                 <div>
                   <SectionHeader label="Payment Flow Intelligence" />
-                  <RailFlowEngine activeRail={Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ACH"} />
+                  <RailFlowEngine activeRail={Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ACH"} onSidebarTrigger={openSidebarWithContext} />
                 </div>
 
 
@@ -1284,7 +1318,7 @@ export default function DashboardPage() {
                                 key={txn.id}
                                 txn={txn}
                                 isLast={idx === Math.min(transactions.length, 8) - 1}
-                                onClick={() => setSelectedTxn(txn)}
+                                onClick={() => { setSelectedTxn(txn); openSidebarWithContext({ type: "TRANSACTION", id: txn.id, data: txn }); }}
                                 isHighlighted={highlightedTxnId === txn.id}
                               />
                             ))
@@ -1432,112 +1466,19 @@ export default function DashboardPage() {
                     </p>
                     <p>
                       <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Threat Overview</strong>
-                      Several elevated-risk transactions remain under review. No active fraud events have been detected and overall operational risk remains within acceptable thresholds.
+                      Several elevated-risk transactions remain under review. No active fraud events detected.
                     </p>
                     <p>
                       <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Settlement Summary</strong>
-                      Primary ACH corridors are processing successfully, while FedNow remains available for real-time settlement requirements.
-                    </p>
-                    <p>
-                      <strong className="text-white text-xs uppercase tracking-wider mb-1 block">Routing Insight</strong>
-                      Current payment distribution reflects optimal rail utilization across ACH, Wire, and instant-payment networks.
+                      Primary ACH corridors are processing successfully. FedNow available for real-time settlement.
                     </p>
                   </div>
                 </div>
 
-                {/* 3. Why This Matters */}
-                <div
-                  className="rounded-xl px-6 py-5 flex flex-col w-full overflow-hidden"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(52,211,153,0.08) 0%, rgba(52,211,153,0.03) 100%)",
-                    border: "1px solid rgba(52,211,153,0.2)",
-                    borderLeft: "3px solid #34D399",
-                    boxShadow: "0 0 20px rgba(52,211,153,0.05) inset"
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <Activity className="w-4 h-4" style={{ color: "#34D399" }} />
-                    <div>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Why This Matters</h3>
-                      <p className="text-[10px] text-slate-500 mt-0.5">Strategic Context</p>
-                    </div>
-                  </div>
-                  <ul className="space-y-3 text-sm text-slate-300">
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
-                      <span>Intelligent routing reduces transaction costs.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
-                      <span>Multi-rail orchestration improves resilience.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
-                      <span>Risk-aware settlement improves operational reliability.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* 4. Who Controls The Rail */}
+                {/* Why This Matters */}
                 <IntelligenceModule
-                  title="Who Controls The Rail"
-                  label="Governance Structure"
-                  icon={ShieldAlert}
-                  accentColor="#22D3EE"
-                  accentBg="rgba(34,211,238,0.06)"
-                >
-                  <div className="space-y-3">
-                    <div className="flex flex-col bg-white/5 border border-white/10 p-3 rounded-lg">
-                      <span className="text-[10px] uppercase text-slate-500 tracking-wider mb-0.5">Network Operator</span>
-                      <span className="text-sm font-bold text-white">NACHA</span>
-                    </div>
-                    <div className="flex flex-col bg-white/5 border border-white/10 p-3 rounded-lg">
-                      <span className="text-[10px] uppercase text-slate-500 tracking-wider mb-0.5">Settlement Authority</span>
-                      <span className="text-sm font-bold text-white">Federal Reserve</span>
-                    </div>
-                    <div className="flex flex-col bg-white/5 border border-white/10 p-3 rounded-lg">
-                      <span className="text-[10px] uppercase text-slate-500 tracking-wider mb-0.5">Open Banking Layer</span>
-                      <span className="text-sm font-bold text-white">Plaid</span>
-                    </div>
-                  </div>
-                </IntelligenceModule>
-
-                {/* 5. Network Snapshot */}
-                <IntelligenceModule
-                  title="Network Snapshot"
-                  label="Current Status"
-                  icon={Server}
-                  accentColor="#F59E0B"
-                  accentBg="rgba(245,158,11,0.06)"
-                >
-                  <div className="flex flex-col gap-3">
-                    <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Connected Institutions</span>
-                      <span className="text-sm font-bold text-cyan-400 font-mono-data">{connectedBanks}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Primary Rail</span>
-                      <span className="text-sm font-bold text-emerald-400 font-mono-data">{Object.entries(railCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Settlement Success</span>
-                      <span className="text-sm font-bold text-white font-mono-data">{successRateStr}%</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Avg Settlement Time</span>
-                      <span className="text-sm font-bold text-white font-mono-data">{avgSettlementLabel}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-white/5">
-                      <span className="text-xs text-slate-400">Threat Level</span>
-                      <span className="text-xs font-bold text-amber-400 uppercase tracking-wider bg-amber-400/10 px-2 py-0.5 rounded">{threatLevel}</span>
-                    </div>
-                  </div>
-                </IntelligenceModule>
-
-                {/* 7. Live Intelligence Feed */}
-                <IntelligenceModule
-                  title="Live Intelligence Feed"
-                  label="Real-time Observations"
+                  title="Why This Matters"
+                  label="Strategic Context"
                   icon={Activity}
                   accentColor="#34D399"
                   accentBg="rgba(52,211,153,0.06)"
@@ -1562,7 +1503,117 @@ export default function DashboardPage() {
 
             </div>
 
-          </div>
+        </div>
+
+        {/* ======================================================================
+            ANIMATED SLIDE-OVER INTELLIGENCE SIDEBAR
+        ====================================================================== */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 z-[55] backdrop-blur-sm"
+                onClick={() => setIsSidebarOpen(false)}
+              />
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="fixed top-0 right-0 h-full w-full sm:w-[450px] z-[60]"
+                style={{
+                  background: "rgba(8, 17, 32, 0.97)",
+                  backdropFilter: "blur(16px)",
+                  borderLeft: "1px solid rgba(255, 255, 255, 0.1)",
+                  boxShadow: "-10px 0 40px rgba(0, 0, 0, 0.6)"
+                }}
+              >
+                <div className="flex items-center justify-between p-5 border-b border-white/10" style={{ background: "rgba(34,211,238,0.05)" }}>
+                  <div className="flex items-center gap-3">
+                    <Brain className="w-5 h-5 text-cyan-400" />
+                    <h2 className="text-sm font-bold text-white uppercase tracking-wider">Intelligence Sidebar</h2>
+                  </div>
+                  <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                    <X className="w-5 h-5 text-slate-400" />
+                  </button>
+                </div>
+                <div className="h-[calc(100%-73px)] overflow-y-auto p-5 custom-scrollbar">
+                  <SidebarContent context={sidebarContext} />
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* ======================================================================
+            ARCHITECT INFORMATION MODAL
+        ====================================================================== */}
+        <AnimatePresence>
+          {isInfoModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+              onClick={() => setIsInfoModalOpen(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="w-full max-w-md p-6 rounded-2xl relative overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, rgba(8,17,32,0.97) 0%, rgba(11,18,32,0.97) 100%)",
+                  backdropFilter: "blur(20px)",
+                  border: "1px solid rgba(34,211,238,0.3)",
+                  boxShadow: "0 0 40px rgba(34,211,238,0.1) inset, 0 32px 64px rgba(0,0,0,0.8)"
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-emerald-500" />
+                <button onClick={() => setIsInfoModalOpen(false)} className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10 transition-colors z-10">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+                <div className="flex items-center gap-4 mb-6 mt-1">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+                    <Terminal className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white tracking-tight">Architect Information</h3>
+                    <p className="text-xs text-cyan-400/80 font-mono-data uppercase tracking-widest mt-0.5">Infocreon Internship</p>
+                  </div>
+                </div>
+                <div className="space-y-3 text-sm text-slate-300">
+                  <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                    <span className="block text-[10px] uppercase text-slate-500 tracking-wider mb-1">Architect</span>
+                    <span className="font-semibold text-white">Shahab Ahamed</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/10">
+                    <span className="text-[10px] uppercase text-slate-500 tracking-wider">Project / POC</span>
+                    <span className="font-mono-data text-xs text-slate-300">POC-96</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/10">
+                    <span className="text-[10px] uppercase text-slate-500 tracking-wider">Batch Info</span>
+                    <span className="font-semibold text-white">Batch 4</span>
+                  </div>
+                  <div className="pt-1">
+                    <span className="block text-[10px] uppercase text-slate-500 tracking-wider mb-2">Technology Stack</span>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="bg-black text-white border border-white/20 px-2.5 py-1 rounded text-xs font-medium">Next.js</span>
+                      <span className="bg-[#059669]/20 text-[#34D399] border border-[#34D399]/30 px-2.5 py-1 rounded text-xs font-medium">FastAPI</span>
+                      <span className="bg-[#06B6D4]/20 text-[#22D3EE] border border-[#22D3EE]/30 px-2.5 py-1 rounded text-xs font-medium">Tailwind CSS</span>
+                      <span className="bg-[#8B5CF6]/20 text-[#A78BFA] border border-[#A78BFA]/30 px-2.5 py-1 rounded text-xs font-medium">Recharts</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       {/* ======================================================================
           TRANSACTION DRILLDOWN DRAWER
@@ -1708,6 +1759,7 @@ function KpiCard({
   accentColor,
   trend,
   alert = false,
+  onClick,
 }: {
   title: string;
   value: string;
@@ -1716,6 +1768,7 @@ function KpiCard({
   accentColor: string;
   trend: "up" | "down" | "neutral";
   alert?: boolean;
+  onClick?: () => void;
 }) {
   const borderColor = alert
     ? "rgba(239,68,68,0.25)"
@@ -1729,7 +1782,8 @@ function KpiCard({
 
   return (
     <div
-      className="kpi-card rounded-xl p-5 flex flex-col gap-4"
+      className={`kpi-card rounded-xl p-5 flex flex-col gap-4 ${onClick ? 'cursor-pointer hover:scale-[1.02] transition-transform' : ''}`}
+      onClick={onClick}
       style={{
         background: alert
           ? "linear-gradient(135deg, rgba(239,68,68,0.04) 0%, #081120 100%)"
@@ -1949,63 +2003,6 @@ function LedgerRow({
 // =============================================================================
 // INTELLIGENCE MODULE  (sidebar panel wrapper)
 // =============================================================================
-
-function IntelligenceModule({
-  title,
-  label,
-  icon: Icon,
-  accentColor,
-  accentBg,
-  headerBadge,
-  children,
-}: {
-  title: string;
-  label: string;
-  icon: React.ElementType;
-  accentColor: string;
-  accentBg: string;
-  headerBadge?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="premium-card rounded-xl overflow-hidden flex flex-col w-full"
-      style={{
-        background: "linear-gradient(135deg, #081120 0%, #0B1220 100%)",
-        border: "1px solid rgba(255,255,255,0.05)",
-      }}
-    >
-      {/* Header */}
-      <div
-        className="px-6 py-4 flex items-center justify-between"
-        style={{
-          background: accentBg,
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
-          borderLeft: `3px solid ${accentColor}`,
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <Icon className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-          <div className="flex-1 min-w-0">
-            <p className="section-label mb-0">{label}</p>
-            <p className="text-white font-semibold text-sm leading-none mt-0.5">
-              {title}
-            </p>
-          </div>
-        </div>
-        {headerBadge ? headerBadge : (
-          <div
-            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            style={{ background: accentColor, opacity: 0.7 }}
-          />
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="px-6 py-5 flex flex-col w-full break-words">{children}</div>
-    </div>
-  );
-}
 
 // =============================================================================
 // RAIL TELEMETRY ROW

@@ -16,6 +16,7 @@ import { calculateMetrics } from "@/lib/metrics";
 interface AIInsightsEngineProps {
   transactions: Transaction[];
   previousTransactions: Transaction[];
+  onSidebarTrigger?: (context: any) => void;
 }
 
 interface Insight {
@@ -33,7 +34,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   OPERATIONS: "#FCD34D",
 };
 
-export default function AIInsightsEngine({ transactions, previousTransactions }: AIInsightsEngineProps) {
+export default function AIInsightsEngine({ transactions, previousTransactions, onSidebarTrigger }: AIInsightsEngineProps) {
   const insights = useMemo<Insight[]>(() => {
     // Fallback when no data
     if (transactions.length === 0) {
@@ -155,7 +156,8 @@ export default function AIInsightsEngine({ transactions, previousTransactions }:
         return (
           <div
             key={i}
-            className="flex flex-col p-3 rounded-lg transition-all duration-150 hover:brightness-105 h-[80px] justify-between"
+            onClick={() => onSidebarTrigger?.({ type: "INSIGHT", id: insight.category, data: insight })}
+            className="flex flex-col p-3 rounded-lg transition-all duration-150 hover:brightness-105 h-[80px] justify-between cursor-pointer hover:scale-[1.02]"
             style={{
               background: "rgba(255,255,255,0.02)",
               border: "1px solid rgba(255,255,255,0.04)",
